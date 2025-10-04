@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <!-- 新增: PWA/添加到桌面 相关的 Meta 标签 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="啵啵宝物库">
+    
+    <title>王一博的宝物库</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* ... (之前的 CSS 代码保持不变) ... */
+        :root { --primary-green: #00b578; --dark-green: #008c5e; --light-green-bg: #e6f8f1; --text-dark: #2c3e50; --text-light: #7f8c8d; --bg-color: #f7fafc; --container-bg: #ffffff; --border-color: #e2e8f0; }
+        html, body { scroll-behavior: smooth; }
+        body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background-color: var(--bg-color); color: var(--text-dark); margin: 0; padding: 0; }
+        
+        body.pseudo-fullscreen-active { overflow: hidden; }
+        input[type="file"] { display: none !important; }
+
+        /* ... (中间省略大量未修改的 CSS) ... */
+        
+        #play-screen .player-container.pseudo-fullscreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;
+        }
+        .player-container.pseudo-fullscreen video {
+            aspect-ratio: auto;
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
+        }
+        #player-container:-webkit-full-screen video,
+        #player-container:fullscreen video {
+            height: 100%;
+            width: 100%;
+            object-fit: contain;
+        }
+
+        /* 
+         *  <<< 这里是关键的新增 CSS 代码！ >>>
+         *  当 body 处于伪全屏激活状态时，
+         *  隐藏播放器顶部的导航栏和旁边的播放列表。
+        */
+        body.pseudo-fullscreen-active .play-screen-header,
+        body.pseudo-fullscreen-active .info-and-playlist {
+            display: none;
+        }
+        body.pseudo-fullscreen-active .play-area-layout {
+            padding: 0; /* 移除全屏时的内边距 */
+        }
+        
+        /* ... (剩下的 CSS 代码保持不变) ... */
+        .orientation-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.85); display: none;
+            justify-content: center; align-items: center; z-index: 1001;
+            color: white; text-align: center; font-size: 1.1rem;
+        }
+
+        /* ... (一直到文件末尾，其他所有代码都保持不变) ... */
+    </style>
+</head>
+<body>
+    <!-- (HTML 和 JavaScript 的全部内容都和之前一样，无需改动) -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const hasPassedGate = localStorage.getItem('yiboGatePassed_v1');
+        if (hasPassedGate) {
+            document.body.innerHTML = `<div id="app-wrapper"></div>`;
+            initApp();
+        } else {
+            document.body.innerHTML = `<div id="access-gate"><div class="gate-content"><h1>请回答一个问题</h1><p>只喜欢王一博吗？</p><form id="gate-form"><input type="text" id="gate-answer" placeholder="请输入答案..." required autocomplete="off"><button type="submit" class="btn">确认</button></form><div id="gate-feedback" class="gate-message"></div></div></div><div id="app-wrapper" style="display: none;"></div>`;
+            const gateForm = document.getElementById('gate-form');
+            gateForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const answer = document.getElementById('gate-answer').value.trim().toLowerCase();
+                const positiveKeywords = ['是', '对', '只', '嗯', '当然', '必须', '唯', '是的', '对的', 'yes', 'only'];
+                let isPositive = positiveKeywords.some(keyword => answer.includes(keyword));
+                gateForm.style.display = 'none';
+                document.getElementById('gate-feedback').style.display = 'block';
+                if (isPositive) {
+                    localStorage.setItem('yiboGatePassed_v1', 'true');
+                    document.getElementById('gate-feedback').innerHTML = `<img src="https://files.catbox.moe/jwa9zu.png" alt="欢迎">`;
+                    setTimeout(() => {
+                        document.getElementById('access-gate').style.opacity = '0';
+                        setTimeout(() => {
+                            document.getElementById('access-gate').style.display = 'none'; document.getElementById('app-wrapper').style.display = 'block'; initApp();
+                        }, 500);
+                    }, 1500);
+                } else {
+                    document.getElementById('gate-feedback').innerHTML = `<img src="https://files.catbox.moe/y77p7v.png" alt="不欢迎">`;
+                }
+            });
+        }
+
+        function initApp() {
+            document.getElementById('app-wrapper').innerHTML = `
+                <div id="home-screen" class="screen"><div class="main-content"><div class="container"><div class="header"><h1>世界で一番可愛くて演技も最高な王一博さんの宝物庫</h1></div><div class="category-selection"><div class="category-card" data-category="tv_series"><div class="icon"><i class="fas fa-tv"></i></div><h2>电视剧</h2></div><div class="category-card" data-category="movies"><div class="icon"><i class="fas fa-film"></i></div><h2>电影</h2></div><div class="category-card" data-category="variety"><div class="icon"><i class="fas fa-star"></i></div><h2>综艺</h2></div></div><div class="settings-container"><h3>播放器设置</h3><div class="settings-item-group"><label for="seek-time-input">快进/快退秒数:</label><input type="number" id="seek-time-input" min="1" max="30" value="10"></div><h3>数据管理</h3><div class="data-management-buttons"><button id="export-data-btn" class="btn secondary"><i class="fas fa-download"></i> 导出数据</button><button id="import-data-btn" class="btn secondary"><i class="fas fa-upload"></i> 导入数据</button><button id="reset-data-btn" class="btn danger"><i class="fas fa-undo"></i> 恢复默认</button><input type="file" id="import-file-input" accept=".json"></div></div></div></div><footer class="site-footer" style="display: block;"><p>本工具为粉丝个人制作，仅供修图剪辑和个人收藏使用，请勿用于任何商业用途。</p><p>所有视频内容的版权归原版权方所有。</p></footer></div>
+                <div id="project-list-screen" class="screen"><div class="main-content"><div class="container"><div class="screen-header"><i class="fas fa-arrow-left back-btn" data-target="home-screen"></i><h1 id="project-list-title"></h1></div><ul id="project-list" class="project-list"></ul><div class="add-project-bar"><button id="add-project-btn" class="btn"><i class="fas fa-plus"></i> 添加新项目</button></div></div></div></div>
+                <div id="cut-editor-screen" class="screen"><div class="main-content"><div class="container"><div class="screen-header"><i class="fas fa-arrow-left back-btn" data-target="project-list-screen"></i><div><h1 id="cut-editor-title"></h1><p id="cut-editor-subtitle"></p></div></div><div class="add-project-bar"><button id="add-cut-btn" class="btn"><i class="fas fa-plus"></i> 添加新Cut</button><button id="batch-add-btn" class="btn secondary"><i class="fas fa-stream"></i> 批量添加</button></div><div id="episode-list-container"></div></div></div></div>
+                <div id="play-screen" class="screen">
+                    <div class="play-screen-header"><i class="fas fa-arrow-left back-btn" data-target="cut-editor-screen"></i></div>
+                    <div class="play-area-layout">
+                        <div class="player-wrapper">
+                            <div id="player-container" class="player-container">
+                                <div class="video-overlay"><div class="seek-overlay left" data-seek-dir="-1"></div><div class="center-controls"><button class="control-btn seek-btn" data-seek="-10" title="快退"><i class="fas fa-backward"></i></button><button class="control-btn play-pause-btn"><i class="fas fa-play"></i></button><button class="control-btn seek-btn" data-seek="10" title="快进"><i class="fas fa-forward"></i></button></div><div class="seek-overlay right" data-seek-dir="1"></div></div>
+                                <div class="seek-indicator"></div>
+                                <div class="loading-overlay"><div class="image-container"><div class="loading-text">小博博正在快马加鞭赶来的路上<span class="ellipsis"><span>.</span><span>.</span><span>.</span></span></div></div></div>
+                                <video id="main-video-player" playsinline crossorigin="anonymous"></video>
+                                <div class="custom-controls"><div class="progress-bar-container"><input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1"></div><div class="controls-main"><div class="controls-left"><div class="volume-container"><button class="control-btn mute-btn"><i class="fas fa-volume-high"></i></button><input type="range" class="volume-slider" value="1" min="0" max="1" step="0.05"></div><div class="time-display"><span class="current-time">00:00</span> / <span class="total-time">00:00</span></div></div><div class="controls-right"><button class="control-btn speed-btn" title="倍速播放">1.0x</button><button class="control-btn screenshot-btn" title="截屏"><i class="fas fa-camera"></i></button><button class="control-btn fullscreen-btn" title="全屏"><i class="fas fa-expand"></i></button></div></div></div>
+                                <div class="orientation-overlay"><div class="orientation-message"><i class="fas fa-mobile-alt"></i><p>请旋转设备以获得最佳体验</p></div></div>
+                            </div>
+                        </div>
+                        <div class="info-and-playlist">
+                            <div class="play-info-box"><h2 id="play-info-title"></h2><p id="play-info-description"></p></div>
+                            <h3 class="playlist-title">播放列表</h3>
+                            <ul id="play-playlist-cuts" class="playlist-cuts"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="project-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2 id="project-modal-title"></h2><form id="project-form" class="form"><input type="hidden" id="projectId"><div class="form-field" data-field-id="seriesName"><label for="seriesName">电视剧名:</label><input type="text" id="seriesName"></div><div class="form-field" data-field-id="movieName"><label for="movieName">电影名:</label><input type="text" id="movieName"></div><div class="form-field" data-field-id="showName"><label for="showName">综艺名:</label><input type="text" id="showName"></div><div class="form-field" data-field-id="characterName"><label for="characterName">角色名:</label><input type="text" id="characterName"></div><div class="form-field" data-field-id="season"><label for="season">季/年份:</label><input type="text" id="season"></div><button type="submit" class="btn" id="project-form-submit-btn"></button></form></div></div>
+                <div id="cut-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2 id="cut-modal-title"></h2><form id="cut-form" class="form"><input type="hidden" id="cutId"><div class="form-field" data-field-id="episodeNumber"><label id="episode-label" for="episodeNumber"></label><input type="text" id="episodeNumber"></div><div class="form-field"><label for="partName">部分:</label><input type="text" id="partName" placeholder="例如: P1 或 01" required></div><div class="form-field"><label for="cutDescription">简介:</label><textarea id="cutDescription"></textarea></div><div class="source-type-chooser"><label><input type="radio" name="sourceType" value="url" checked> 视频链接</label><label><input type="radio" name="sourceType" value="local"> 本地上传</label></div><div class="form-field" data-source-type="url"><label for="videoLink">视频链接:</label><input type="url" id="videoLink"></div><div class="form-field" data-source-type="local"><label for="localCutFile">选择视频文件:</label><input type="file" id="localCutFile" accept="video/*"></div><button type="submit" class="btn" id="cut-form-submit-btn"></button></form></div></div>
+                <div id="batch-add-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2>批量添加Cut</h2><form id="batch-form" class="form"><div class="form-field"><label id="batch-episode-label" for="batchEpisodeKey"></label><input type="text" id="batchEpisodeKey" required></div><div class="form-field"><label for="batchDataInput">Cut数据 (每行一个):</label><div class="format-instructions"><p>格式1: <b>部分 | 简介 | 链接</b></p><p>格式2: <b>链接</b> (将自动编号)</p></div><textarea id="batchDataInput" required></textarea></div><button type="submit" class="btn">保存批量添加</button></form></div></div>
+                <div id="confirm-modal" class="modal"><div class="modal-content confirm-dialog"><i class="fas fa-exclamation-triangle"></i><h2 id="confirm-title"></h2><p id="confirm-message"></p><div class="confirm-actions"><button id="confirm-cancel-btn" class="btn secondary">取消</button><button id="confirm-ok-btn" class="btn danger">确认删除</button></div></div></div>
+                <input type="file" id="bobo-image-input" accept="image/*" multiple>
+                <div class="closet-modal" id="closet-modal"><div class="closet-header"><div class="closet-title">奇迹啵啵</div><button class="close-modal-btn" id="close-closet-btn">&times;</button></div><div class="closet-body" id="closet-preview-area"></div><div class="closet-footer"><button id="add-by-link-btn" class="btn">输入链接</button><button id="continue-select-btn" class="btn">本地导入</button></div></div>
+                <div id="url-prompt-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2>输入图片链接</h2><form id="url-prompt-form" class="form"><div class="form-field"><input type="url" id="image-url-input" placeholder="请在此处粘贴图片链接" required></div><div class="form-actions"><button type="button" id="url-prompt-cancel-btn" class="btn secondary">取消</button><button type="submit" class="btn">确认</button></div></form></div></div>
+            `;
+            
+            // ... (所有 JavaScript 代码都和之前一样，无需改动) ...
+            let state = { currentScreen: 'home-screen', currentCategory: null, currentProjectId: null, currentPlaylist: [], currentPlaylistIndex: 0, db: {}, settings: {}, confirmCallback: null };
+            let lastSaveTime = 0; let controlsTimeout = null;
+            const projectModalFields = { 'tv_series': ['seriesName', 'characterName'], 'movies': ['movieName', 'characterName'], 'variety': ['showName', 'season'] };
+            
+                        const getDefaultDB = () => ({
+                "tv_series": [],
+                "movies": [],
+                "variety": [{
+                    "id": 1661040000000,
+                    "showName": "一起火锅吧",
+                    "season": "第三季",
+                    "cuts": {
+                        "20220821": [
+                            {"id": 1661040000001, "part": "P1", "desc": "", "link": "https://files.catbox.moe/547iea.mp4"},
+                            {"id": 1661040000002, "part": "P2", "desc": "", "link": "https://files.catbox.moe/c464ps.mp4"},
+                            {"id": 1661040000003, "part": "P3", "desc": "", "link": "https://files.catbox.moe/1rpb3z.mp4"},
+                            {"id": 1661040000004, "part": "P4", "desc": "", "link": "https://files.catbox.moe/uj398g.mp4"},
+                            {"id": 1661040000005, "part": "P5", "desc": "", "link": "https://files.catbox.moe/jf4i0u.mp4"},
+                            {"id": 1661040000006, "part": "P6", "desc": "", "link": "https://files.catbox.moe/02lrfb.mp4"},
+                            {"id": 1661040000007, "part": "P7", "desc": "", "link": "https://files.catbox.moe/3hsmnc.mp4"},
+                            {"id": 1661040000008, "part": "P8", "desc": "", "link": "https://files.catbox.moe/q57abo.mp4"},
+                            {"id": 1661040000009, "part": "P9", "desc": "", "link": "https://files.catbox.moe/mih52y.mp4"},
+                            {"id": 1661040000010, "part": "P10", "desc": "", "link": "https://files.catbox.moe/9h32yv.mp4"},
+                            {"id": 1661040000011, "part": "P11", "desc": "", "link": "https://files.catbox.moe/uzha5f.mp4"},
+                            {"id": 1661040000012, "part": "P12", "desc": "", "link": "https://files.catbox.moe/cfaczb.mp4"},
+                            {"id": 1661040000013, "part": "P13", "desc": "", "link": "https://files.catbox.moe/p27cqr.mp4"},
+                            {"id": 1661040000014, "part": "P14", "desc": "", "link": "https://files.catbox.moe/mqhddj.mp4"},
+                            {"id": 1661040000015, "part": "P15", "desc": "", "link": "https://files.catbox.moe/4hd7v4.mp4"},
+                            {"id": 1661040000016, "part": "P16", "desc": "", "link": "https://files.catbox.moe/kx14zj.mp4"},
+                            {"id": 1661040000017, "part": "P17", "desc": "", "link": "https://files.catbox.moe/4nzi1o.mp4"},
+                            {"id": 1661040000018, "part": "P18", "desc": "", "link": "https://files.catbox.moe/w6jfpd.mp4"}
+                        ],
+                        // --- 新增的20220828期数据 ---
+                        "20220828": [
+                            {"id": 1661644800001, "part": "P1", "desc": "", "link": "https://files.catbox.moe/hq9zer.mp4"},
+                            {"id": 1661644800002, "part": "P2", "desc": "", "link": "https://files.catbox.moe/fs2tvh.mp4"},
+                            {"id": 1661644800003, "part": "P3", "desc": "", "link": "https://files.catbox.moe/7vhkuq.mp4"},
+                            {"id": 1661644800004, "part": "P4", "desc": "", "link": "https://files.catbox.moe/lp4i5x.mp4"},
+                            {"id": 1661644800005, "part": "P5", "desc": "", "link": "https://files.catbox.moe/4b60qe.mp4"},
+                            {"id": 1661644800006, "part": "P6", "desc": "", "link": "https://files.catbox.moe/2j2bte.mp4"},
+                            {"id": 1661644800007, "part": "P7", "desc": "", "link": "https://files.catbox.moe/acnu63.mp4"},
+                            {"id": 1661644800008, "part": "P8", "desc": "", "link": "https://files.catbox.moe/pey926.mp4"},
+                            {"id": 1661644800009, "part": "P9", "desc": "", "link": "https://files.catbox.moe/esyhvw.mp4"},
+                            {"id": 1661644800010, "part": "P10", "desc": "", "link": "https://files.catbox.moe/y852cb.mp4"},
+                            {"id": 1661644800011, "part": "P11", "desc": "", "link": "https://files.catbox.moe/99kmgm.mp4"},
+                            {"id": 1661644800012, "part": "P12", "desc": "", "link": "https://files.catbox.moe/l2wxuo.mp4"},
+                            {"id": 1661644800013, "part": "P13", "desc": "", "link": "https://files.catbox.moe/dc5mq4.mp4"},
+                            {"id": 1661644800014, "part": "P14", "desc": "", "link": "https://files.catbox.moe/w1uo4p.mp4"},
+                            {"id": 1661644800015, "part": "P15", "desc": "", "link": "https://files.catbox.moe/yykgho.mp4"},
+                            {"id": 1661644800016, "part": "P16", "desc": "", "link": "https://files.catbox.moe/05r0bw.mp4"},
+                            {"id": 1661644800017, "part": "P17", "desc": "", "link": "https://files.catbox.moe/pfp0eg.mp4"},
+                            {"id": 1661644800018, "part": "P18", "desc": "", "link": "https://files.catbox.moe/36s004.mp4"},
+                            {"id": 1661644800019, "part": "P19", "desc": "", "link": "https://files.catbox.moe/4u9wuf.mp4"},
+                            {"id": 1661644800020, "part": "P20", "desc": "", "link": "https://files.catbox.moe/90p7wk.mp4"},
+                            {"id": 1661644800021, "part": "P21", "desc": "", "link": "https://files.catbox.moe/odx4j6.mp4"},
+                            {"id": 1661644800022, "part": "P22", "desc": "", "link": "https://files.catbox.moe/l9fri4.mp4"},
+                            {"id": 1661644800023, "part": "P23", "desc": "", "link": "https://files.catbox.moe/93sam4.mp4"},
+                            {"id": 1661644800024, "part": "P24", "desc": "", "link": "https://files.catbox.moe/y4ocry.mp4"},
+                            {"id": 1661644800025, "part": "P25", "desc": "", "link": "https://files.catbox.moe/9upzmy.mp4"},
+                            {"id": 1661644800026, "part": "P26", "desc": "", "link": "https://files.catbox.moe/4royto.mp4"},
+                            {"id": 1661644800027, "part": "P27", "desc": "", "link": "https://files.catbox.moe/nnwt5k.mp4"},
+                            {"id": 1661644800028, "part": "P28", "desc": "", "link": "https://files.catbox.moe/6isgjp.mp4"},
+                            {"id": 1661644800029, "part": "P29", "desc": "", "link": "https://files.catbox.moe/tyjsse.mp4"},
+                            {"id": 1661644800030, "part": "P30", "desc": "", "link": "https://files.catbox.moe/p766cc.mp4"},
+                            {"id": 1661644800031, "part": "P31", "desc": "", "link": "https://files.catbox.moe/a5j63g.mp4"},
+                            {"id": 1661644800032, "part": "P32", "desc": "", "link": "https://files.catbox.moe/id7q03.mp4"}
+                        ]
+                    }
+                }]
+            });
+            const getDB = () => JSON.parse(localStorage.getItem('yiboCutsDB_v16')) || getDefaultDB();
+            const saveDB = () => localStorage.setItem('yiboCutsDB_v16', JSON.stringify(state.db));
+            const getSettings = () => JSON.parse(localStorage.getItem('yiboCutsSettings')) || { seekTime: 10 };
+            const saveSettings = () => localStorage.setItem('yiboCutsSettings', JSON.stringify(state.settings));
+            const showScreen = (id) => { state.currentScreen = id; document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); if(id==='play-screen') window.scrollTo(0, 0);};
+            const findProject = (cat, id) => state.db[cat]?.find(p => p.id === id);
+            const renderProjectList = () => { const projects = state.db[state.currentCategory] || []; const listEl = document.getElementById('project-list'); const map = {tv_series:'电视剧', movies:'电影', variety:'综艺'}; listEl.innerHTML = projects.length === 0 ? '<p>...</p>' : ''; document.getElementById('project-list-title').textContent = `${map[state.currentCategory]}列表`; projects.forEach(p => { let t, s; switch (state.currentCategory) { case 'tv_series': t = p.seriesName; s = p.characterName ? `角色: ${p.characterName}` : ''; break; case 'movies': t = p.movieName; s = p.characterName ? `角色: ${p.characterName}` : ''; break; case 'variety': t = p.showName; s = p.season ? `季/年份: ${p.season}` : ''; break; } const li = document.createElement('li'); li.className = 'project-item'; li.innerHTML = `<div class="project-info" data-id="${p.id}"><h3>${t}</h3><p>${s}</p></div><div class="project-actions"><button class="btn icon-btn edit-project-btn" data-id="${p.id}"><i class="fas fa-edit"></i></button><button class="btn danger icon-btn delete-project-btn" data-id="${p.id}"><i class="fas fa-trash"></i></button></div>`; listEl.appendChild(li); }); };
+            const renderCutEditor = () => { const p = findProject(state.currentCategory, state.currentProjectId); if (!p) return; let t, s; switch (state.currentCategory) { case 'tv_series': t = p.seriesName; s = p.characterName ? `角色: ${p.characterName}` : ''; break; case 'movies': t = p.movieName; s = p.characterName ? `角色: ${p.characterName}` : ''; break; case 'variety': t = p.showName; s = p.season ? `季/年份: ${p.season}` : ''; break; } document.getElementById('cut-editor-title').textContent = t; document.getElementById('cut-editor-subtitle').textContent = s; renderCuts(p.cuts); };
+            const renderCuts = (cuts) => { const c=document.getElementById('episode-list-container');c.innerHTML=Object.keys(cuts).length===0?'<div class="empty-state"><p>...</p></div>':'';if(Object.keys(cuts).length===0)return;Object.keys(cuts).sort((a,b)=>a.localeCompare(b,void 0,{numeric:!0})).forEach(key=>{const isMovie="movies"===state.currentCategory;const h=isMovie?"片段列表":`${"tv_series"===state.currentCategory?"第":""}${key}${"tv_series"===state.currentCategory?"集":"期"}`;let r='';cuts[key].sort((a, b) => a.part.localeCompare(b, undefined, { numeric: true })).forEach(cut=>{r+=`<tr data-cut-id="${cut.id}"><td>${cut.part}</td><td class="description-cell" title="${cut.desc}">${cut.desc}</td><td><span class="play-link-btn">观看</span></td><td><div class="kebab-menu-container"><button class="kebab-toggle"><i class="fas fa-ellipsis-v"></i></button><div class="kebab-dropdown"><button class="kebab-item edit-cut-btn">编辑</button><button class="kebab-item danger delete-cut-btn">删除</button></div></div></td></tr>`});const i=`<div class="episode-item" data-episode-key="${key}"><button class="episode-header"><span>${h}</span><div class="header-controls"><div class="open-closet-btn" title="打开奇迹啵啵"></div><i class="fas fa-chevron-down icon"></i></div></button><div class="episode-content"><table class="cut-table"><thead><tr><th>部分</th><th>简介</th><th>链接</th><th>操作</th></tr></thead><tbody>${r}</tbody></table></div></div>`;c.insertAdjacentHTML("beforeend",i)})};
+            const renderPlaylist = () => { const c = document.getElementById('play-playlist-cuts'); c.innerHTML = ''; state.currentPlaylist.forEach((cut, i) => { const li = document.createElement('li'); li.className = 'playlist-item'; li.dataset.index = i; if (i === state.currentPlaylistIndex) li.classList.add('playing'); li.innerHTML = `<span class="part">${cut.part}</span>`; c.appendChild(li); }); };
+            const loadAndPlayCut = (index, startTime = 0) => {
+                if (index < 0 || index >= state.currentPlaylist.length) return;
+                state.currentPlaylistIndex = index;
+                const cut = state.currentPlaylist[index];
+                const project = findProject(state.currentCategory, state.currentProjectId);
+                video.src = cut.link;
+                if (startTime > 0) { const onLoad = () => { video.currentTime = startTime; video.removeEventListener('loadedmetadata', onLoad); }; video.addEventListener('loadedmetadata', onLoad); }
+                let title = ''; switch(state.currentCategory) { case 'tv_series': title = `${project.seriesName} - 第${cut.episodeKey}集 ${cut.part}`; break; case 'variety': title = `${project.showName} - ${cut.episodeKey}期 ${cut.part}`; break; case 'movies': title = `${project.movieName} - 片段 ${cut.part}`; break; }
+                document.getElementById('play-info-title').textContent = title;
+                document.getElementById('play-info-description').textContent = cut.desc;
+                renderPlaylist(); video.play();
+            };
+            const openModal = (id) => { document.getElementById(id).style.display = 'flex'; };
+            const closeModal = (id) => { const m=document.getElementById(id); if(m) m.style.display='none'; };
+            const showConfirmModal = (title, message, callback, confirmText = '确认删除') => {
+                document.getElementById('confirm-title').textContent = title;
+                document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-ok-btn').textContent = confirmText;
+                state.confirmCallback = callback;
+                openModal('confirm-modal');
+            };
+            const setupProjectModal = (id=null) => { const f=document.getElementById('project-form');f.reset();const e=id!==null;document.getElementById('project-modal-title').textContent=e?'修改信息':'添加项目';document.getElementById('project-form-submit-btn').textContent=e?'保存修改':'添加';document.getElementById('projectId').value=e?id:'';const r=projectModalFields[state.currentCategory];f.querySelectorAll('.form-field').forEach(el=>{const i=el.dataset.fieldId,n=el.querySelector('input'),v=r.includes(i);el.style.display=v?'block':'none';n.required=v&&i!=='characterName'&&i!=='season'});if(e){const p=findProject(state.currentCategory,id);r.forEach(fId=>{document.getElementById(fId).value=p[fId]||''})}openModal('project-modal')};
+            const setupCutModal = (id=null, key=null) => { const f=document.getElementById('cut-form');f.reset();const isE=id!==null;document.getElementById('cut-modal-title').textContent=isE?'修改Cut':'添加Cut';document.getElementById('cut-form-submit-btn').textContent=isE?'保存修改':'添加';document.getElementById('cutId').value=isE?id:'';const ef=f.querySelector('[data-field-id="episodeNumber"]'),ei=document.getElementById('episodeNumber'),el=document.getElementById('episode-label');if(state.currentCategory==='movies'){ef.style.display='none';ei.required=false}else{ef.style.display='block';ei.required=true;el.textContent=state.currentCategory==='tv_series'?'第几集:':'第几期:';ei.placeholder=state.currentCategory==='tv_series'?'1':'20210814'}const uf=f.querySelector('[data-source-type="url"]'),lf=f.querySelector('[data-source-type="local"]'),ui=document.getElementById('videoLink'),li=document.getElementById('localCutFile');const uR=f.querySelector('input[name="sourceType"][value="url"]'),lR=f.querySelector('input[name="sourceType"][value="local"]');const tS=s=>{if(s==='url'){uf.style.display='block';lf.style.display='none';ui.required=true;li.required=false}else{uf.style.display='none';lf.style.display='block';ui.required=false;li.required=!isE}};uR.onchange=()=>tS('url');lR.onchange=()=>tS('local');if(isE){const cut=findProject(state.currentCategory,state.currentProjectId)?.cuts[key]?.find(c=>c.id===id);ei.value=key;document.getElementById('partName').value=cut.part;document.getElementById('cutDescription').value=cut.desc;if(cut.link.startsWith('blob:')){lR.checked=true;tS('local')}else{uR.checked=true;tS('url');ui.value=cut.link}}else{uR.checked=true;tS('url')}openModal('cut-modal')};
+            const playerContainer = document.getElementById('player-container'), video = document.getElementById('main-video-player'), playPauseBtn = document.querySelector('.play-pause-btn'), progressBar = document.querySelector('.progress-bar'), currentTimeEl = document.querySelector('.current-time'), totalTimeEl = document.querySelector('.total-time'), volumeSlider = document.querySelector('.volume-slider'), muteBtn = document.querySelector('.mute-btn'), fullscreenBtn = document.querySelector('.fullscreen-btn'), screenshotBtn = document.querySelector('.screenshot-btn'), speedBtn = document.querySelector('.speed-btn'), seekIndicator = document.querySelector('.seek-indicator');
+            const playbackSpeeds = [1.0, 1.25, 1.5, 2.0, 0.75]; let currentSpeedIndex = 0;
+            const formatTime = (time) => { const secs = Math.floor(time % 60).toString().padStart(2, '0'); const mins = Math.floor(time / 60).toString().padStart(2, '0'); return `${mins}:${secs}`; };
+            const handleOrientationChange = () => { if (!playerContainer.classList.contains('pseudo-fullscreen')) return; playerContainer.classList.toggle('portrait', window.innerHeight > window.innerWidth); };
+            const toggleFullScreen = async () => {
+                const isIphone = /iPhone/i.test(navigator.userAgent);
+                const isInPseudoFullscreen = playerContainer.classList.contains('pseudo-fullscreen');
+                const isInRealFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+                if (isInRealFullscreen) { if (document.exitFullscreen) await document.exitFullscreen(); else if (document.webkitExitFullscreen) await document.webkitExitFullscreen(); } 
+                else if (isInPseudoFullscreen) { playerContainer.classList.remove('pseudo-fullscreen', 'portrait'); document.body.classList.remove('pseudo-fullscreen-active'); if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } 
+                else { 
+                    if (isIphone) { playerContainer.classList.add('pseudo-fullscreen'); document.body.classList.add('pseudo-fullscreen-active'); handleOrientationChange(); } 
+                    else { 
+                        await playerContainer.requestFullscreen();
+                        try { await screen.orientation.lock('landscape'); } catch (err) { console.warn("Orientation lock failed:", err); }
+                    } 
+                }
+            };
+            const hideControls = () => playerContainer.classList.remove('controls-visible');
+            const showControls = (autoHide = true) => { clearTimeout(controlsTimeout); playerContainer.classList.add('controls-visible'); if (autoHide && !video.paused) { controlsTimeout = setTimeout(hideControls, 3000); } };
+            playPauseBtn.onclick = () => video.paused ? video.play() : video.pause();
+            video.onplay = () => { playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; showControls(true); };
+            video.onpause = () => { playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; showControls(false); };
+            video.onloadedmetadata = () => { totalTimeEl.textContent = formatTime(video.duration); video.playbackRate = playbackSpeeds[currentSpeedIndex]; speedBtn.textContent = `${playbackSpeeds[currentSpeedIndex].toFixed(2)}x`; };
+            video.ontimeupdate = () => {
+                if (video.duration) progressBar.value = (video.currentTime / video.duration) * 100;
+                currentTimeEl.textContent = formatTime(video.currentTime);
+                const now = Date.now();
+                if (now - lastSaveTime > 5000) {
+                    if (video.currentTime > 1 && video.currentTime < video.duration - 1) {
+                         const position = { category: state.currentCategory, projectId: state.currentProjectId, playlist: state.currentPlaylist, playlistIndex: state.currentPlaylistIndex, time: video.currentTime };
+                        localStorage.setItem('lastPlaybackPosition', JSON.stringify(position));
+                    }
+                    lastSaveTime = now;
+                }
+            };
+            video.onended = () => { if(state.currentPlaylistIndex < state.currentPlaylist.length - 1) { loadAndPlayCut(state.currentPlaylistIndex + 1); } else { localStorage.removeItem('lastPlaybackPosition'); }};
+            progressBar.oninput = () => video.currentTime = (progressBar.value / 100) * video.duration;
+            volumeSlider.oninput = (e) => { video.muted = false; video.volume = e.target.value; };
+            video.onvolumechange = () => { volumeSlider.value = video.muted ? 0 : video.volume; muteBtn.innerHTML = video.muted || video.volume === 0 ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-high"></i>'; };
+            muteBtn.onclick = () => video.muted = !video.muted;
+            fullscreenBtn.addEventListener('click', (event) => { event.preventDefault(); toggleFullScreen(); });
+            video.onwaiting = () => playerContainer.classList.add('loading'); video.oncanplay = () => playerContainer.classList.remove('loading');
+            screenshotBtn.onclick = () => { const canvas = document.createElement('canvas'); canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height); const link = document.createElement('a'); link.href = canvas.toDataURL('image/png'); link.download = `screenshot-${Date.now()}.png`; link.click(); };
+            speedBtn.onclick = () => { currentSpeedIndex = (currentSpeedIndex + 1) % playbackSpeeds.length; video.playbackRate = playbackSpeeds[currentSpeedIndex]; speedBtn.textContent = `${playbackSpeeds[currentSpeedIndex].toFixed(2)}x`; };
+            document.querySelectorAll('.seek-btn').forEach(btn => { btn.onclick = () => video.currentTime += parseInt(btn.dataset.seek); });
+            document.querySelectorAll('.seek-overlay').forEach(overlay => { let lastClick=0; overlay.addEventListener('click', (e) => { const now = new Date().getTime(); if(now - lastClick < 300) { const dir = parseInt(e.currentTarget.dataset.seekDir); video.currentTime += dir * state.settings.seekTime; seekIndicator.textContent = `${dir > 0 ? '+' : ''}${state.settings.seekTime}s`; seekIndicator.classList.add('show'); setTimeout(() => seekIndicator.classList.remove('show'), 500); } lastClick = now; }); });
+            playerContainer.addEventListener('mousemove', () => showControls(true));
+            playerContainer.addEventListener('mouseleave', () => hideControls());
+            playerContainer.addEventListener('click', (e) => { if (e.target === playerContainer || e.target.closest('.video-overlay')) { if (playerContainer.classList.contains('controls-visible')) hideControls(); else showControls(true); } });
+            document.querySelector('.custom-controls').addEventListener('click', e => e.stopPropagation());
+            const handleFullscreenUiChange = () => {
+                const fullscreenIcon = fullscreenBtn.querySelector('i');
+                const isInAnyFullscreen = playerContainer.classList.contains('pseudo-fullscreen') || document.fullscreenElement || document.webkitFullscreenElement;
+                if (isInAnyFullscreen) fullscreenIcon.classList.replace('fa-expand', 'fa-compress'); else fullscreenIcon.classList.replace('fa-compress', 'fa-expand');
+            };
+            document.addEventListener('fullscreenchange', handleFullscreenUiChange); document.addEventListener('webkitfullscreenchange', handleFullscreenUiChange);
+            new MutationObserver(handleFullscreenUiChange).observe(playerContainer, { attributes: true, attributeFilter: ['class'] });
+            window.addEventListener('orientationchange', handleOrientationChange); window.addEventListener('resize', handleOrientationChange);
+            document.body.addEventListener('click', e => { const k=e.target.closest(".kebab-toggle");document.querySelectorAll(".kebab-dropdown.active").forEach(d=>{if(!d.previousElementSibling.contains(e.target))d.classList.remove("active")});if(k){e.stopPropagation();k.nextElementSibling.classList.toggle("active")}const p=e.target.closest(".play-link-btn");if(p){const t=p.closest("tr"),i=parseInt(t.dataset.cutId);const y=t.closest(".episode-item").dataset.episodeKey;const j=findProject(state.currentCategory,state.currentProjectId);state.currentPlaylist=j.cuts[y].sort((a, b) => a.part.localeCompare(b, undefined, { numeric: true })).map(c=>({...c,episodeKey:y}));state.currentPlaylistIndex=state.currentPlaylist.findIndex(c=>c.id===i);loadAndPlayCut(state.currentPlaylistIndex);showScreen("play-screen");return}const l=e.target.closest(".playlist-item");if(l){loadAndPlayCut(parseInt(l.dataset.index))}const c=e.target.closest(".category-card");if(c){state.currentCategory=c.dataset.category;renderProjectList();showScreen("project-list-screen")}const b=e.target.closest(".back-btn");if(b){if(b.dataset.target==="cut-editor-screen"){video.pause();if(video.currentSrc&&video.currentSrc.startsWith("blob:")){URL.revokeObjectURL(video.currentSrc)}video.removeAttribute("src")}showScreen(b.dataset.target)}const x=e.target.closest(".close-btn");if(x){closeModal(x.closest(".modal").id)}if(e.target.closest("#add-project-btn")){setupProjectModal()}if(e.target.closest("#batch-add-btn")){const a=document.getElementById("batch-episode-label"),n=document.getElementById("batchEpisodeKey");if(state.currentCategory==="movies"){a.style.display="none";n.style.display="none";n.required=false}else{a.style.display="block";n.style.display="block";n.required=true;a.textContent=state.currentCategory==="tv_series"?"所属集数:":"所属期数:"}openModal("batch-add-modal")}const o=e.target.closest(".project-info");if(o){state.currentProjectId=parseInt(o.dataset.id);renderCutEditor();showScreen("cut-editor-screen")}const d=e.target.closest(".edit-project-btn");if(d){setupProjectModal(parseInt(d.dataset.id))}const g=e.target.closest(".delete-project-btn");if(g){const h=parseInt(g.dataset.id);showConfirmModal("确认删除项目","您确定要永久删除此项目及其包含的所有Cut吗？此操作无法撤销。",()=>{state.db[state.currentCategory]=state.db[state.currentCategory].filter(p=>p.id!==h);saveDB();renderProjectList();closeModal("confirm-modal")})}if(e.target.closest("#add-cut-btn")){setupCutModal()}const q=e.target.closest(".open-closet-btn");if(q){e.stopPropagation();const w=q.closest(".episode-item").dataset.episodeKey;initCloset(state.currentProjectId,w);document.getElementById("closet-modal").style.display="flex";return}const z=e.target.closest(".episode-header");if(z){z.classList.toggle("active");const m=z.nextElementSibling;m.style.maxHeight=m.style.maxHeight?null:m.scrollHeight+"px"}const u=e.target.closest(".edit-cut-btn");if(u){const f=u.closest("tr");const v=f.closest(".episode-item").dataset.episodeKey;setupCutModal(parseInt(f.dataset.cutId),v)}const r=e.target.closest(".delete-cut-btn");if(r){showConfirmModal("确认删除Cut","您确定要删除此条Cut吗？",()=>{const s=r.closest("tr");const t=s.closest(".episode-item").dataset.episodeKey;const i=parseInt(s.dataset.cutId);const p=findProject(state.currentCategory,state.currentProjectId);p.cuts[t]=p.cuts[t].filter(c=>c.id!==i);if(p.cuts[t].length===0)delete p.cuts[t];saveDB();renderCutEditor();closeModal("confirm-modal")})}if(e.target.closest("#confirm-ok-btn")){if(typeof state.confirmCallback==="function"){state.confirmCallback();state.confirmCallback=null}}if(e.target.closest("#confirm-cancel-btn")){closeModal("confirm-modal");state.confirmCallback=null}});
+            window.onclick = (e) => { if (!e.target.closest('.kebab-menu-container')) { document.querySelectorAll('.kebab-dropdown.active').forEach(d => d.classList.remove('active')); } if (e.target.classList.contains('modal')) closeModal(e.target.id); };
+            document.getElementById('project-form').addEventListener('submit', e => { e.preventDefault(); const f = e.target; const id = parseInt(f.querySelector('#projectId').value); const p = isNaN(id) ? { id: Date.now(), cuts: {} } : findProject(state.currentCategory, id); projectModalFields[state.currentCategory].forEach(fid => { p[fid] = f.querySelector(`#${fid}`).value; }); if (isNaN(id)) state.db[state.currentCategory].push(p); saveDB(); renderProjectList(); closeModal('project-modal'); });
+            document.getElementById('cut-form').addEventListener('submit', async (e) => { e.preventDefault(); const f=e.target;const id=parseInt(f.querySelector("#cutId").value);const p=findProject(state.currentCategory,state.currentProjectId);const k=state.currentCategory==="movies"?"all":f.querySelector("#episodeNumber").value;const s=f.querySelector('input[name="sourceType"]:checked').value;let l="";if(s==="url"){l=f.querySelector("#videoLink").value}else{const file=f.querySelector("#localCutFile").files[0];if(file){l=URL.createObjectURL(file)}else if(!id){alert("请选择一个本地视频文件。");return}}if(isNaN(id)){if(!p.cuts[k])p.cuts[k]=[];p.cuts[k].push({id:Date.now(),part:f.querySelector("#partName").value,desc:f.querySelector("#cutDescription").value,link:l})}else{const ok=findCutKeyById(p,id);const c=p.cuts[ok].find(c=>c.id===id);c.part=f.querySelector("#partName").value;c.desc=f.querySelector("#cutDescription").value;if(l)c.link=l;if(ok!==k){if(!p.cuts[k])p.cuts[k]=[];p.cuts[k].push(c);p.cuts[ok]=p.cuts[ok].filter(i=>i.id!==id);if(p.cuts[ok].length===0)delete p.cuts[ok]}}saveDB();renderCutEditor();closeModal("cut-modal")});
+            document.getElementById('batch-form').addEventListener('submit', e => { e.preventDefault(); const p = findProject(state.currentCategory, state.currentProjectId); const k = state.currentCategory === "movies" ? "all" : document.getElementById("batchEpisodeKey").value; const d = document.getElementById("batchDataInput").value; const lines = d.split("\n").filter(line => line.trim() !== ""); const newCuts = []; let partCounter = p.cuts[k] ? p.cuts[k].length + 1 : 1; lines.forEach((line, index) => { const newId = Date.now() + index; if (line.includes('|')) { const parts = line.split("|"); if (parts.length === 3) { newCuts.push({ id: newId, part: parts[0].trim(), desc: parts[1].trim(), link: parts[2].trim() }); } } else { newCuts.push({ id: newId, part: `P${partCounter++}`, desc: "", link: line.trim() }); } }); if (!p.cuts[k]) p.cuts[k] = []; p.cuts[k].push(...newCuts); saveDB(); renderCutEditor(); e.target.reset(); closeModal("batch-add-modal"); });
+            const createResumePrompt = (pos) => { const p=findProject(pos.category,pos.projectId);if(!p)return;const c=pos.playlist[pos.playlistIndex];const e=document.createElement("div");e.id="resume-prompt";let t,s;switch(pos.category){case"tv_series":t=`${p.seriesName} (角色: ${p.characterName})`;s=`上次看到: 第${c.episodeKey}集 ${c.part}`;break;case"movies":t=p.movieName;s=`上次看到: 片段 ${c.part}`;break;case"variety":t=p.showName;s=`上次看到: ${c.episodeKey}期 ${c.part}`}e.innerHTML=`<div class="info"><h4>${t}</h4><p>${s}</p></div><i class="fas fa-play-circle resume-btn"></i><i class="fas fa-times close-resume-btn"></i>`;document.getElementById("home-screen").appendChild(e);e.querySelector(".resume-btn").onclick=()=>{state.currentCategory=pos.category;state.currentProjectId=pos.projectId;state.currentPlaylist=pos.playlist;loadAndPlayCut(pos.playlistIndex,pos.time);showScreen("play-screen");e.remove()};e.querySelector(".close-resume-btn").onclick=()=>{localStorage.removeItem("lastPlaybackPosition");e.remove()}};
+            const findCutKeyById = (project, cutId) => { for (const key in project.cuts) { if (project.cuts[key].some(c => c.id === cutId)) return key; } return null; };
+            const initDataManagement = () => {
+                const exportBtn = document.getElementById('export-data-btn'); const importBtn = document.getElementById('import-data-btn'); const importFileInput = document.getElementById('import-file-input'); const resetBtn = document.getElementById('reset-data-btn');
+                exportBtn.addEventListener('click', () => { const dataStr = JSON.stringify(state.db, null, 2); const dataBlob = new Blob([dataStr], {type: 'application/json'}); const url = URL.createObjectURL(dataBlob); const link = document.createElement('a'); link.href = url; link.download = `yibo-treasure-backup-${new Date().toISOString().split('T')[0]}.json`; link.click(); URL.revokeObjectURL(url); });
+                importBtn.addEventListener('click', () => importFileInput.click());
+                importFileInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+                    reader.onload = (event) => { showConfirmModal('确认导入数据', '这将覆盖您当前的所有数据，确定要导入吗？此操作无法撤销。', () => { try { const importedData = JSON.parse(event.target.result); if (importedData.tv_series && importedData.movies && importedData.variety) { localStorage.setItem('yiboCutsDB_v16', JSON.stringify(importedData)); alert('数据导入成功！页面将刷新以应用更改。'); location.reload(); } else { alert('导入失败：文件格式不正确。'); } } catch (error) { alert('导入失败：文件解析错误。'); } closeModal('confirm-modal'); }, '确认导入'); }; reader.readAsText(file); importFileInput.value = '';
+                });
+                resetBtn.addEventListener('click', () => { showConfirmModal('恢复默认数据', '您确定要恢复到初始数据吗？您添加或修改的所有内容都将丢失。', () => { localStorage.removeItem('yiboCutsDB_v16'); localStorage.removeItem('lastPlaybackPosition'); alert('数据已重置。页面将刷新。'); location.reload(); }, '确认恢复'); });
+            };
+            const init = () => { 
+                state.db = getDB(); state.settings = getSettings();
+                document.getElementById('seek-time-input').value = state.settings.seekTime;
+                document.getElementById('seek-time-input').addEventListener('change', e => {
+                    state.settings.seekTime = parseInt(e.target.value) || 10; saveSettings();
+                    document.querySelectorAll('.seek-btn').forEach(btn => { const dir = parseInt(btn.dataset.seek) > 0 ? 1 : -1; btn.dataset.seek = dir * state.settings.seekTime; });
+                });
+                document.querySelectorAll('.seek-btn').forEach(btn => { const dir = parseInt(btn.dataset.seek) > 0 ? 1 : -1; btn.dataset.seek = dir * state.settings.seekTime; });
+                const lastPos = localStorage.getItem('lastPlaybackPosition'); if (lastPos) createResumePrompt(JSON.parse(lastPos));
+                initBoboClosetApp(); initDataManagement(); showScreen('home-screen'); 
+            };
+            init();
+            function initBoboClosetApp() { const b=document.getElementById("bobo-image-input"),c=document.getElementById("closet-modal"),x=document.getElementById("close-closet-btn"),s=document.getElementById("continue-select-btn"),a=document.getElementById("add-by-link-btn"),u=document.getElementById("url-prompt-modal"),f=document.getElementById("url-prompt-form"),n=document.getElementById("url-prompt-cancel-btn"),i=document.getElementById("image-url-input");x.addEventListener("click",()=>c.style.display="none");s.addEventListener("click",()=>b.click());a.addEventListener("click",()=>{i.value="";openModal("url-prompt-modal")});n.addEventListener("click",()=>closeModal("url-prompt-modal"));f.addEventListener("submit",e=>{e.preventDefault();const url=i.value.trim();if(url){createFramedPreviewInCloset(url);closeModal("url-prompt-modal")}});b.addEventListener("change",e=>{if(e.target.files&&e.target.files.length>0){for(const file of e.target.files){const r=new FileReader;r.onload=e=>createFramedPreviewInCloset(e.target.result);r.readAsDataURL(file)}}e.target.value=null})}
+            function initCloset(p, k) { 
+                const c = document.getElementById('closet-preview-area'); c.innerHTML = ''; 
+                if (p === 1661040000000 && k.startsWith('20220821')) { createFramedPreviewInCloset('https://files.catbox.moe/txap8r.jpeg'); }
+                else if (p === 1661040000000 && k.startsWith('20220828')) { createFramedPreviewInCloset('https://files.catbox.moe/tsf6dq.jpeg'); }
+            }
+            function createFramedPreviewInCloset(src) { const a=document.getElementById('closet-preview-area');const w=document.createElement('div');w.className='preview-wrapper';const c=document.createElement('div');c.className='bobo-display-container';const p=document.createElement('div');p.className='bobo-image-clipper';const u=document.createElement('img');u.className='bobo-user-image';u.src=src;p.appendChild(u);const f=document.createElement('img');f.className='bobo-frame-overlay';f.src='https://files.catbox.moe/kizuoc.png';c.appendChild(p);c.appendChild(f);w.appendChild(c);a.appendChild(w); }
+        }
+    });
+    </script>
+</body>
+</html>
