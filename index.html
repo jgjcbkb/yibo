@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        /* ... (之前的 CSS 代码保持不变) ... */
         :root { --primary-green: #00b578; --dark-green: #008c5e; --light-green-bg: #e6f8f1; --text-dark: #2c3e50; --text-light: #7f8c8d; --bg-color: #f7fafc; --container-bg: #ffffff; --border-color: #e2e8f0; }
         html, body { scroll-behavior: smooth; }
         body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background-color: var(--bg-color); color: var(--text-dark); margin: 0; padding: 0; }
@@ -21,7 +20,124 @@
         body.pseudo-fullscreen-active { overflow: hidden; }
         input[type="file"] { display: none !important; }
 
-        /* ... (中间省略大量未修改的 CSS) ... */
+        #access-gate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); z-index: 9999; display: flex;
+            justify-content: center; align-items: center; text-align: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .gate-content {
+            background-color: var(--container-bg); padding: 40px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; width: 90%;
+        }
+        .gate-content h1 { margin-top: 0; color: var(--primary-green); }
+        .gate-content p { font-size: 1.1rem; margin-bottom: 20px; }
+        #gate-answer {
+            width: 100%; padding: 12px; margin-bottom: 20px;
+            border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box;
+        }
+        #gate-answer:focus {
+            outline: none; border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(0, 181, 120, 0.15);
+        }
+        .gate-message { margin-top: 20px; display: none; }
+        .gate-message img { max-width: 100%; height: auto; border-radius: 8px; }
+
+        .screen { display: none; animation: fadeIn 0.5s; } .screen.active { display: block; }
+        .container { max-width: 900px; margin: 0 auto; background-color: var(--container-bg); padding: 25px 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
+        .main-content { padding: 20px; }
+        .btn { background-color: var(--primary-green); color: white; border: none; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; }
+        .btn:hover { background-color: var(--dark-green); transform: translateY(-2px); }
+        .btn.danger { background-color: #e53e3e; } .btn.danger:hover { background-color: #c53030; }
+        .btn.secondary { background-color: #a0aec0; } .btn.secondary:hover { background-color: #718096; }
+        .btn.icon-btn { padding: 8px 12px; }
+        .screen-header { display: flex; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; }
+        .back-btn { font-size: 1.5rem; color: var(--text-light); cursor: pointer; margin-right: 15px; }
+        .screen-header h1 { margin: 0; font-size: 1.8rem; } .screen-header p { margin: 5px 0 0; color: var(--text-light); }
+        #home-screen .header { text-align: center; margin-bottom: 40px; } #home-screen h1 { font-size: 2.2rem; }
+        .category-selection { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; }
+        .category-card { background-color: var(--container-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .category-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); border-color: var(--primary-green); }
+        .category-card .icon { font-size: 3rem; color: var(--primary-green); margin-bottom: 15px; } .category-card h2 { margin: 0; }
+        .project-list { list-style: none; padding: 0; }
+        .project-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 15px; transition: all 0.2s ease; }
+        .project-item .project-info { cursor: pointer; flex-grow: 1; }
+        .project-item:hover { border-color: var(--primary-green); background-color: var(--light-green-bg); }
+        .project-info h3 { margin: 0; } .project-info p { margin: 5px 0 0; color: var(--text-light); font-size: 0.9rem; }
+        .project-actions { display: flex; gap: 10px; }
+        .add-project-bar { display: flex; justify-content: center; gap: 15px; padding: 20px 0; }
+        #cut-editor-screen .empty-state { text-align: center; color: var(--text-light); padding: 50px 0; }
+        #cut-editor-screen .episode-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+        
+        #cut-editor-screen .episode-header {
+            background-color: #fff; cursor: pointer; padding: 10px 20px;
+            width: 100%; border: none; text-align: left; font-size: 1.2rem; font-weight: 600;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px;
+            transition: background-color 0.3s; border-bottom: 1px solid transparent;
+        }
+        #cut-editor-screen .episode-header.active { background-color: var(--light-green-bg); color: var(--dark-green); border-bottom-color: var(--border-color); }
+        #cut-editor-screen .episode-header .icon { transition: transform 0.3s; color: var(--text-light); font-size: 1.5rem; }
+        #cut-editor-screen .episode-header.active .icon { transform: rotate(180deg); color: var(--dark-green); }
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+
+        #cut-editor-screen .episode-content { padding: 0; background-color: white; max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+        #cut-editor-screen .cut-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        #cut-editor-screen .cut-table th, .cut-table td { padding: 12px 20px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        #cut-editor-screen .cut-table th:last-child, #cut-editor-screen .cut-table td:last-child { text-align: center; }
+        #cut-editor-screen .cut-table .description-cell { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #cut-editor-screen .cut-table th { background-color: #fcfcfc; font-size: 0.9rem; color: var(--text-light); }
+        #cut-editor-screen .cut-table tr:last-child td { border-bottom: none; }
+        .play-link-btn { color: var(--primary-green); text-decoration: none; font-weight: 600; cursor: pointer; } .play-link-btn:hover { color: var(--dark-green); text-decoration: underline; }
+        
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px); animation: fadeIn 0.3s;
+            display: none;
+            justify-content: center; align-items: center;
+            padding: 15px; box-sizing: border-box;
+        }
+        .modal-content {
+            background-color: #fff; padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 500px; position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideIn 0.4s;
+            margin: 0; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-content h2 { margin-top: 0; color: var(--primary-green); }
+        .close-btn { color: #aaa; position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; z-index: 1001;}
+        
+        .confirm-dialog { max-width: 400px; text-align: center; }
+        .confirm-dialog .fas { font-size: 2.5rem; color: #e53e3e; margin-bottom: 15px; }
+        .confirm-dialog h2 { color: var(--text-dark); }
+        .confirm-dialog p { color: var(--text-light); margin-bottom: 25px; font-size: 1rem; }
+        .confirm-actions { display: flex; justify-content: center; gap: 15px; }
+        
+        .form label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        .form input, .form textarea { width: 100%; padding: 12px; margin-bottom: 18px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; }
+        .form input:focus, .form textarea:focus { outline: none; border-color: var(--primary-green); box-shadow: 0 0 0 3px rgba(0, 181, 120, 0.15); }
+        .form textarea { resize: vertical; min-height: 90px; } .form .btn { width: 100%; } .form-field { display: block; }
+        .source-type-chooser { display: flex; gap: 20px; margin-bottom: 18px; } .source-type-chooser label { font-weight: normal; }
+        .kebab-menu-container { position: relative; display: inline-block; }
+        .kebab-toggle { background: none; border: none; font-size: 1.2rem; color: var(--text-light); cursor: pointer; padding: 5px; border-radius: 50%; }
+        .kebab-toggle:hover { background-color: var(--border-color); }
+        .kebab-dropdown { display: none; position: absolute; right: 0; top: 100%; background-color: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 10; overflow: hidden; min-width: 100px; }
+        tr:last-child .kebab-dropdown { top: auto; bottom: 100%; }
+        .kebab-dropdown.active { display: block; }
+        .kebab-dropdown button { display: block; width: 100%; padding: 10px 15px; border: none; background: none; text-align: left; cursor: pointer; }
+        .kebab-dropdown button:hover { background-color: var(--light-green-bg); } .kebab-dropdown button.danger { color: #e53e3e; }
+        
+        #play-screen { background-color: var(--container-bg); }
+        .play-screen-header { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); }
+        .play-area-layout { padding: 0 20px 20px; }
+        #play-screen .player-wrapper { position: sticky; top: 0; z-index: 100; }
+        @media (min-width: 992px) {
+            .play-area-layout { display: flex; align-items: flex-start; gap: 20px; }
+            #play-screen .player-wrapper { flex: 2; }
+            #play-screen .info-and-playlist { flex: 1; padding: 0; }
+        }
+        #play-screen .player-container { width: 100%; max-width: 100%; position: relative; overflow: hidden; background-color: #000; }
+        #play-screen .player-container video { width: 100%; aspect-ratio: 16/9; display: block; object-fit: contain; }
         
         #play-screen .player-container.pseudo-fullscreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;
@@ -39,32 +155,180 @@
             object-fit: contain;
         }
 
-        /* 
-         *  <<< 这里是关键的新增 CSS 代码！ >>>
-         *  当 body 处于伪全屏激活状态时，
-         *  隐藏播放器顶部的导航栏和旁边的播放列表。
-        */
+        /* 新增: 用于PWA伪全屏模式下隐藏多余元素 */
         body.pseudo-fullscreen-active .play-screen-header,
         body.pseudo-fullscreen-active .info-and-playlist {
             display: none;
         }
         body.pseudo-fullscreen-active .play-area-layout {
-            padding: 0; /* 移除全屏时的内边距 */
+            padding: 0;
         }
-        
-        /* ... (剩下的 CSS 代码保持不变) ... */
+
         .orientation-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.85); display: none;
             justify-content: center; align-items: center; z-index: 1001;
             color: white; text-align: center; font-size: 1.1rem;
         }
+        .orientation-message i { font-size: 4rem; margin-bottom: 1rem; display: block; animation: rotate-phone 2s infinite ease-in-out; }
+        @keyframes rotate-phone { 0% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } 100% { transform: rotate(-90deg); opacity: 1; } }
+        .player-container.pseudo-fullscreen.portrait .orientation-overlay { display: flex; }
 
-        /* ... (一直到文件末尾，其他所有代码都保持不变) ... */
+        #play-screen .info-and-playlist { padding: 20px 0; }
+        .play-info-box { margin-bottom: 25px; } .play-info-box h2 { font-size: 1.5rem; margin: 0 0 10px; } .play-info-box p { font-size: 1rem; color: var(--text-dark); line-height: 1.8; white-space: pre-wrap; margin: 0; }
+        .playlist-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; border-left: 4px solid var(--primary-green); padding-left: 10px; }
+        .playlist-cuts { list-style: none; padding: 0; margin: 0; max-height: 50vh; overflow-y: auto; }
+        .playlist-item { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 15px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; border-bottom: 1px solid var(--border-color); }
+        .playlist-item:last-child { border-bottom: none; }
+        .playlist-item.playing, .playlist-item:hover { background-color: var(--light-green-bg); }
+        .playlist-item .part { font-weight: bold; font-size: 1.1rem; color: var(--primary-green); flex-shrink: 0; }
+        .playlist-item.playing .part { font-weight: bold; }
+        
+        .video-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+        .center-controls { grid-column: 2 / 3; display: flex; align-items: center; gap: 40px; pointer-events: all; transition: opacity 0.3s; z-index: 2; }
+        .seek-overlay { grid-row: 1 / 2; pointer-events: all; z-index: 1; }
+        .seek-overlay.left { grid-column: 1 / 2; }
+        .seek-overlay.right { grid-column: 3 / 4; }
+        .seek-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; background-color: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px; font-size: 1.5rem; opacity: 0; transition: opacity 0.3s; z-index: 5; pointer-events: none; }
+        .seek-indicator.show { opacity: 1; }
+        
+        .custom-controls, .center-controls { opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .player-container.controls-visible .custom-controls,
+        .player-container.controls-visible .center-controls { opacity: 1; }
+
+        .custom-controls { position: absolute; bottom: 0; left: 0; right: 0; padding: 5px 10px; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); color: #fff; display: flex; flex-direction: column; pointer-events: none; z-index: 3; }
+        .player-container.controls-visible .custom-controls { pointer-events: all; }
+        
+        .progress-bar-container { width: 100%; margin-bottom: 5px; }
+        input[type="range"].progress-bar { width: 100%; height: 5px; -webkit-appearance: none; background: rgba(255,255,255,0.3); outline: none; transition: height 0.2s; cursor: pointer; }
+        input[type="range"].progress-bar:hover { height: 8px; }
+        input[type="range"].progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 63px; height: 63px;
+            background-image: url('https://files.catbox.moe/8o1ysk.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            border: none; border-radius: 0; background-color: transparent;
+        }
+        input[type="range"].progress-bar::-moz-range-thumb {
+            width: 63px; height: 63px;
+            background-image: url('https://files.catbox.moe/8o1ysk.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            border: none; border-radius: 0; background-color: transparent;
+        }
+        
+        .controls-main { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+        .controls-left, .controls-right { display: flex; align-items: center; gap: 10px; }
+        .control-btn { background: none; border: none; color: #fff; font-size: 1rem; cursor: pointer; padding: 5px; }
+        .speed-btn { font-size: 0.9rem; font-weight: bold; width: 45px; }
+        .time-display { font-size: 0.85rem; }
+        .volume-container { display: flex; align-items: center; }
+        input[type="range"].volume-slider { width: 70px; height: 4px; background: #fff; }
+
+        @font-face {
+          font-family: 'MyCoolPixelFont'; 
+          src: url('https://files.catbox.moe/51ftco.ttf') format('truetype');
+          font-display: swap; 
+        }
+
+        .loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; display: none; justify-content: center;
+            align-items: center; z-index: 4; pointer-events: none;
+        }
+        .player-container.loading .loading-overlay { display: flex; }
+        .loading-overlay .image-container {
+            width: 33.333%; height: 0;
+            padding-bottom: calc(33.333% * (644 / 834));
+            background-image: url('https://files.catbox.moe/zqobie.png');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            position: relative;
+        }
+        .loading-overlay .loading-text {
+            position: absolute;
+            top: calc(508 / 644 * 100%); left: calc(42 / 834 * 100%);
+            width: calc((795 - 42) / 834 * 100%); height: calc((624 - 508) / 644 * 100%);
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'MyCoolPixelFont', sans-serif;
+            font-size: clamp(6px, 1.3vw, 12px);
+            color: #5a4e47; white-space: nowrap;
+        }
+        .loading-overlay .ellipsis span { animation: blink-animation 1.4s infinite; opacity: 0; }
+        .loading-overlay .ellipsis span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-overlay .ellipsis span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink-animation { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+        
+        .site-footer { text-align: center; padding: 40px 20px 20px; font-size: 0.8rem; color: var(--text-light); display: none; }
+        #batch-add-modal .form textarea { min-height: 200px; font-family: monospace; }
+        #batch-add-modal .format-instructions { font-size: 0.85rem; color: var(--text-light); background-color: var(--bg-color); padding: 10px; border-radius: 4px; margin-top: -10px; margin-bottom: 18px; }
+        #batch-add-modal .format-instructions p { margin: 5px 0; }
+        .settings-container { margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .settings-container h3 { text-align: center; margin-bottom: 15px; color: var(--text-dark); }
+        .settings-item-group { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .settings-item-group label { color: var(--text-light); }
+        .settings-item-group input[type=number] { width: 60px; padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); text-align: center; }
+        .data-management-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+        
+        #resume-prompt {
+            position: fixed; bottom: 20px; right: 20px;
+            background-color: var(--container-bg); color: var(--text-dark);
+            padding: 15px 20px; border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1002; display: flex; align-items: center; gap: 15px;
+            opacity: 0; transform: translateY(20px);
+            animation: slideUpFadeIn 0.5s forwards;
+        }
+        #resume-prompt .info h4 { margin: 0 0 5px; font-size: 0.95rem; }
+        #resume-prompt .info p { margin: 0; font-size: 0.8rem; color: var(--text-light); }
+        #resume-prompt .resume-btn { font-size: 1.5rem; color: var(--primary-green); cursor: pointer; }
+        #resume-prompt .close-resume-btn { font-size: 1.2rem; color: var(--text-light); cursor: pointer; }
+
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} } @keyframes slideIn { from {transform: translateY(-50px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        @keyframes slideUpFadeIn { from {opacity: 0; transform: translateY(20px);} to {opacity: 1; transform: translateY(0);} }
+
+        .open-closet-btn {
+            width: 140px; height: 140px; background-image: url('https://files.catbox.moe/xs592h.png');
+            background-size: contain; background-repeat: no-repeat; cursor: pointer; border: none;
+            background-color: transparent; animation: pulse-animation 2s infinite ease-in-out; flex-shrink: 0;
+        }
+        .closet-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(to top right, #2E7D32, #66BB6A);
+            z-index: 2000; display: none; flex-direction: column; color: white;
+            padding: 20px; box-sizing: border-box;
+        }
+        .closet-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 15px; border-bottom: 2px solid rgba(255, 255, 255, 0.3); 
+        }
+        .closet-title { font-size: 2.5rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .close-modal-btn { font-size: 2.5rem; cursor: pointer; background: none; border: none; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .closet-body { flex-grow: 1; padding: 20px 0; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 20px; align-content: flex-start; }
+        .closet-footer { 
+            padding-top: 15px; text-align: center; display: flex; 
+            justify-content: center; gap: 15px; flex-wrap: wrap;
+        }
+        .closet-footer .btn {
+            background-color: rgba(255, 255, 255, 0.2); color: white; border: 2px solid white;
+            padding: 15px 30px; font-size: 1.2rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; transition: background-color 0.3s;
+        }
+        .closet-footer .btn:hover { background-color: rgba(255, 255, 255, 0.4); }
+        .preview-wrapper { width: 288px; height: 231px; flex-shrink: 0; }
+        .bobo-display-container {
+            width: 1442px; height: 1154px; position: relative;
+            transform: scale(0.2); transform-origin: top left;
+        }
+        .bobo-image-clipper { position: absolute; top: 76px; left: 132px; width: 1217px; height: 917px; overflow: hidden; z-index: 1; }
+        .bobo-user-image { width: 100%; height: 100%; object-fit: cover; }
+        .bobo-frame-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        @keyframes pulse-animation { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        #url-prompt-modal { z-index: 2001; }
+        #url-prompt-modal .modal-content { max-width: 450px; }
+        #url-prompt-modal .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        #url-prompt-modal .form-actions .btn { width: auto; }
     </style>
 </head>
 <body>
-    <!-- (HTML 和 JavaScript 的全部内容都和之前一样，无需改动) -->
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const hasPassedGate = localStorage.getItem('yiboGatePassed_v1');
@@ -130,7 +394,6 @@
                 <div id="url-prompt-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2>输入图片链接</h2><form id="url-prompt-form" class="form"><div class="form-field"><input type="url" id="image-url-input" placeholder="请在此处粘贴图片链接" required></div><div class="form-actions"><button type="button" id="url-prompt-cancel-btn" class="btn secondary">取消</button><button type="submit" class="btn">确认</button></div></form></div></div>
             `;
             
-            // ... (所有 JavaScript 代码都和之前一样，无需改动) ...
             let state = { currentScreen: 'home-screen', currentCategory: null, currentProjectId: null, currentPlaylist: [], currentPlaylistIndex: 0, db: {}, settings: {}, confirmCallback: null };
             let lastSaveTime = 0; let controlsTimeout = null;
             const projectModalFields = { 'tv_series': ['seriesName', 'characterName'], 'movies': ['movieName', 'characterName'], 'variety': ['showName', 'season'] };
@@ -163,7 +426,6 @@
                             {"id": 1661040000017, "part": "P17", "desc": "", "link": "https://files.catbox.moe/4nzi1o.mp4"},
                             {"id": 1661040000018, "part": "P18", "desc": "", "link": "https://files.catbox.moe/w6jfpd.mp4"}
                         ],
-                        // --- 新增的20220828期数据 ---
                         "20220828": [
                             {"id": 1661644800001, "part": "P1", "desc": "", "link": "https://files.catbox.moe/hq9zer.mp4"},
                             {"id": 1661644800002, "part": "P2", "desc": "", "link": "https://files.catbox.moe/fs2tvh.mp4"},
