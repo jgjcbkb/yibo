@@ -968,7 +968,7 @@ uR.onchange=()=>tS('url');lR.onchange=()=>tS('local');if(isE){const cut=findProj
                     }
                     subtitleBtn.style.color = isShowing ? '#fff' : 'var(--primary-green)';
                 } else {
-                    openSubtitleUpload();
+                    alert('暂无字幕。请点击旁边的"上传字幕"按钮（⬆）添加外挂字幕。');
                 }
             };
             
@@ -1013,10 +1013,6 @@ uR.onchange=()=>tS('url');lR.onchange=()=>tS('local');if(isE){const cut=findProj
             };
             subtitleBtn.oncontextmenu = (e) => { e.preventDefault(); openSubtitleUpload(); };
             document.querySelector('.subtitle-upload-btn').onclick = openSubtitleUpload;
-                    reader.readAsText(file);
-                };
-                input.click();
-            };
 
             // 字幕设置面板逻辑
             const hexToRgb = hex => {
