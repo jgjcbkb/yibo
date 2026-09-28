@@ -599,7 +599,7 @@ body.preview-mode-active .chat-area {
                                 <div class="seek-indicator"></div>
                                 <div class="loading-overlay"><div class="image-container"><div class="loading-text">小博博正在快马加鞭赶来的路上<span class="ellipsis"><span>.</span><span>.</span><span>.</span></span></div></div></div>
                                 <video id="main-video-player" playsinline></video>
-                                <div class="custom-controls"><div class="progress-bar-container"><input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1"></div><div class="controls-main"><div class="controls-left"><div class="volume-container"><button class="control-btn mute-btn"><i class="fas fa-volume-high"></i></button><input type="range" class="volume-slider" value="1" min="0" max="1" step="0.05"></div><div class="time-display"><span class="current-time">00:00</span> / <span class="total-time">00:00</span></div></div><div class="controls-right"><button class="control-btn speed-btn" title="倍速播放">1.0x</button><button class="control-btn subtitle-btn" title="字幕 (左键开关 / 右键挂载)"><i class="fas fa-closed-captioning"></i></button><button class="control-btn subtitle-upload-btn" title="上传字幕"><i class="fas fa-upload"></i></button><button class="control-btn subtitle-settings-btn" title="字幕设置"><i class="fas fa-cog"></i></button><button class="control-btn screenshot-btn" title="截屏"><i class="fas fa-camera"></i></button><button class="control-btn fullscreen-btn" title="全屏"><i class="fas fa-expand"></i></button></div>
+                                <div class="custom-controls"><div class="progress-bar-container"><input type="range" class="progress-bar" value="0" min="0" max="100" step="0.1"></div><div class="controls-main"><div class="controls-left"><div class="volume-container"><button class="control-btn mute-btn"><i class="fas fa-volume-high"></i></button><input type="range" class="volume-slider" value="1" min="0" max="1" step="0.05"></div><div class="time-display"><span class="current-time">00:00</span> / <span class="total-time">00:00</span></div></div><div class="controls-right"><button class="control-btn speed-btn" title="倍速播放">1.0x</button><button class="control-btn subtitle-btn" title="字幕 (左键开关 / 右键挂载)"><i class="fas fa-closed-captioning"></i></button><button class="control-btn subtitle-upload-btn" title="上传字幕"><i class="fas fa-upload"></i></button><button class="control-btn subtitle-settings-btn" title="字幕设置"><i class="fas fa-cog"></i></button><button class="control-btn video-info-btn" title="视频属性"><i class="fas fa-circle-info"></i></button><button class="control-btn screenshot-btn" title="截屏"><i class="fas fa-camera"></i></button><button class="control-btn fullscreen-btn" title="全屏"><i class="fas fa-expand"></i></button></div>
 
 </div></div>
                                 <div class="orientation-overlay"><div class="orientation-message"><i class="fas fa-mobile-alt"></i><p>请旋转设备以获得最佳体验</p></div></div>
@@ -814,7 +814,53 @@ switch(state.currentCategory) { case 'tv_series': title = `${project.seriesName}
             const setupProjectModal = (id=null) => { const f=document.getElementById('project-form');f.reset();const e=id!==null;document.getElementById('project-modal-title').textContent=e?'修改信息':'添加项目';document.getElementById('project-form-submit-btn').textContent=e?'保存修改':'添加';document.getElementById('projectId').value=e?id:'';const r=projectModalFields[state.currentCategory];f.querySelectorAll('.form-field').forEach(el=>{const i=el.dataset.fieldId,n=el.querySelector('input'),v=r.includes(i);el.style.display=v?'block':'none';n.required=v&&i!=='characterName'&&i!=='season'});if(e){const p=findProject(state.currentCategory,id);r.forEach(fId=>{document.getElementById(fId).value=p[fId]||''})}openModal('project-modal')};
             const setupCutModal = (id=null, key=null) => { const f=document.getElementById('cut-form');f.reset();const isE=id!==null;document.getElementById('cut-modal-title').textContent=isE?'修改Cut':'添加Cut';document.getElementById('cut-form-submit-btn').textContent=isE?'保存修改':'添加';document.getElementById('cutId').value=isE?id:'';const ef=f.querySelector('[data-field-id="episodeNumber"]'),ei=document.getElementById('episodeNumber'),el=document.getElementById('episode-label');if(state.currentCategory==='movies'){ef.style.display='none';ei.required=false}else{ef.style.display='block';ei.required=true;el.textContent=state.currentCategory==='tv_series'?'第几集:':'第几期:';ei.placeholder=state.currentCategory==='tv_series'?'1':'20210814'}const uf=f.querySelectorAll('[data-source-type="url"]'),lf=f.querySelectorAll('[data-source-type="local"]'),ui=document.getElementById('videoLink'),li=document.getElementById('localCutFile');const uR=f.querySelector('input[name="sourceType"][value="url"]'),lR=f.querySelector('input[name="sourceType"][value="local"]');const tS=s=>{if(s==='url'){uf.forEach(el=>el.style.display='block');lf.forEach(el=>el.style.display='none');ui.required=true;li.required=false}else{uf.forEach(el=>el.style.display='none');lf.forEach(el=>el.style.display='block');ui.required=false;li.required=!isE}};
 uR.onchange=()=>tS('url');lR.onchange=()=>tS('local');if(isE){const cut=findProject(state.currentCategory,state.currentProjectId)?.cuts[key]?.find(c=>c.id===id);ei.value=key;document.getElementById('partName').value=cut.part;document.getElementById('cutDescription').value=cut.desc;if(cut.link.startsWith('blob:')){lR.checked=true;tS('local');document.getElementById('localSubtitleFile').value='';}else{uR.checked=true;tS('url');ui.value=cut.link;document.getElementById('subtitleLink').value=cut.subtitleLink||''}}else{uR.checked=true;tS('url')}openModal('cut-modal')};
-            const playerContainer = document.getElementById('player-container'), video = document.getElementById('main-video-player'), playPauseBtn = document.querySelector('.play-pause-btn'), progressBar = document.querySelector('.progress-bar'), currentTimeEl = document.querySelector('.current-time'), totalTimeEl = document.querySelector('.total-time'), volumeSlider = document.querySelector('.volume-slider'), muteBtn = document.querySelector('.mute-btn'), fullscreenBtn = document.querySelector('.fullscreen-btn'), screenshotBtn = document.querySelector('.screenshot-btn'), speedBtn = document.querySelector('.speed-btn'), seekIndicator = document.querySelector('.seek-indicator'), subtitleBtn = document.querySelector('.subtitle-btn');
+            const playerContainer = document.getElementById('player-container'), video = document.getElementById('main-video-player'), playPauseBtn = document.querySelector('.play-pause-btn'), progressBar = document.querySelector('.progress-bar'), currentTimeEl = document.querySelector('.current-time'), totalTimeEl = document.querySelector('.total-time'), volumeSlider = document.querySelector('.volume-slider'), muteBtn = document.querySelector('.mute-btn'), fullscreenBtn = document.querySelector('.fullscreen-btn'), screenshotBtn = document.querySelector('.screenshot-btn'), speedBtn = document.querySelector('.speed-btn'), seekIndicator = document.querySelector('.seek-indicator'), subtitleBtn = document.querySelector('.subtitle-btn'), videoInfoBtn = document.querySelector('.video-info-btn');
+            // ================= 视频属性功能 =================
+            const formatDuration = (s) => { if (!isFinite(s) || s < 0) return '未知'; const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60); return (h > 0 ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0'); };
+            const formatBytes = (b) => { if (!b || b <= 0) return '未知'; if (b < 1048576) return (b / 1024).toFixed(0) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; };
+            videoInfoBtn.onclick = async () => {
+                const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                const cut = state.currentPlaylist && state.currentPlaylist[state.currentPlaylistIndex] ? state.currentPlaylist[state.currentPlaylistIndex] : null;
+                const p = findProject(state.currentCategory, state.currentProjectId);
+                let projName = '';
+                if (p) { if (state.currentCategory === 'tv_series') projName = p.seriesName; else if (state.currentCategory === 'variety') projName = p.showName; else if (state.currentCategory === 'movies') projName = p.movieName; }
+                const catName = state.currentCategory === 'tv_series' ? '剧集' : state.currentCategory === 'variety' ? '综艺' : state.currentCategory === 'movies' ? '电影' : '未知';
+                const link = cut && cut.link ? cut.link : '';
+                const m = link.match(/\.(mp4|mkv|webm|mov|flv|ts|avi)(\?|$)/i);
+                const ext = m ? m[1].toUpperCase() : '未知';
+                let sizeTxt = '未知';
+                let totalBytes = 0;
+                if (link && /^https?:/i.test(link)) {
+                    try { const res = await fetch('http://127.0.0.1:8899/proxy?url=' + encodeURIComponent(link), { method: 'HEAD' }); const cl = res.headers.get('Content-Length'); if (cl) { totalBytes = parseInt(cl, 10); sizeTxt = formatBytes(totalBytes); } } catch (err) { sizeTxt = '未知（本地代理未开启）'; }
+                }
+                const dur = video.duration;
+                const cur = video.currentTime;
+                const bw = totalBytes && isFinite(dur) && dur > 0 ? (totalBytes * 8 / dur / 1000).toFixed(0) + ' kbps' : '—';
+                const rows = [
+                    ['名称', cut && cut.part ? cut.part : '当前片段'],
+                    ['所属', projName ? projName + '（' + catName + '）' : catName],
+                    ['格式', ext],
+                    ['链接', link ? (link.length > 60 ? link.slice(0, 60) + '...' : link) : '—'],
+                    ['分辨率', video.videoWidth && video.videoHeight ? video.videoWidth + ' × ' + video.videoHeight : '未知（未加载）'],
+                    ['时长', formatDuration(dur)],
+                    ['文件大小', sizeTxt],
+                    ['码率（估算）', bw],
+                    ['播放进度', isFinite(cur) && isFinite(dur) && dur > 0 ? formatDuration(cur) + ' / ' + formatDuration(dur) + '（' + Math.round(cur / dur * 100) + '%）' : '—'],
+                    ['倍速 / 音量', video.playbackRate.toFixed(2) + 'x / ' + Math.round(video.volume * 100) + '%'],
+                ];
+                const mask = document.createElement('div');
+                mask.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:10000;';
+                const card = document.createElement('div');
+                card.style.cssText = 'background:#fff;border-radius:14px;width:min(430px,92vw);max-height:82vh;overflow:auto;padding:18px 22px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:14px;color:#333;';
+                let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><b style="font-size:16px;color:#188038;">视频属性</b><span id="vi-close" style="cursor:pointer;color:#999;font-size:20px;padding:0 4px;">×</span></div>';
+                rows.forEach(r => { html += '<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px dashed #eee;"><span style="color:#888;flex-shrink:0;">' + esc(r[0]) + '</span><span style="text-align:right;word-break:break-all;color:#222;max-width:66%;">' + esc(r[1]) + '</span></div>'; });
+                card.innerHTML = html;
+                mask.appendChild(card);
+                document.body.appendChild(mask);
+                mask.onclick = (e) => { if (e.target === mask) mask.remove(); };
+                card.querySelector('#vi-close').onclick = () => mask.remove();
+            };
+
             const playbackSpeeds = [1.0, 1.25, 1.5, 2.0, 0.75]; let currentSpeedIndex = 0;
             const formatTime = (time) => { const secs = Math.floor(time % 60).toString().padStart(2, '0'); const mins = Math.floor(time / 60).toString().padStart(2, '0'); return `${mins}:${secs}`; };
             const handleOrientationChange = () => { if (!playerContainer.classList.contains('pseudo-fullscreen')) return; /* 取消苹果手机强制横屏，不再添加 portrait 类 */ };
