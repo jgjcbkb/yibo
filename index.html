@@ -541,6 +541,41 @@ body.preview-mode-active .chat-area {
             background-color: rgba(var(--sub-bg-r), var(--sub-bg-g), var(--sub-bg-b), var(--sub-opacity)) !important;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }
+
+        /* ===== 图片物料 ===== */
+        .ig-album-card { background: var(--container-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all .2s; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .ig-album-card:hover { border-color: var(--primary-green); transform: translateY(-3px); }
+        .ig-album-card h3 { margin: 0 0 4px; }
+        .ig-sub { margin: 2px 0 0; color: #888; font-size: .85rem; }
+        .ig-card-ops { display: flex; gap: 4px; flex: none; }
+        .ig-card-ops span { background: rgba(0,0,0,.08); border-radius: 6px; padding: 3px 9px; cursor: pointer; font-size: .85rem; }
+        .ig-nav-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .ig-tab { background: none; border: 1px solid #ddd; border-radius: 16px; padding: 6px 14px; margin: 0 4px 8px 0; cursor: pointer; font-size: .9rem; color: #333; }
+        .ig-tab.active { background: var(--primary-green); color: #fff; border-color: var(--primary-green); }
+        .ig-date-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+        .ig-date-btn { background: none; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: .85rem; color: #333; }
+        .ig-date-btn.active { background: #333; color: #fff; border-color: #333; }
+        .ig-grid { column-count: 3; column-gap: 8px; }
+        @media (max-width: 600px) { .ig-grid { column-count: 2; } }
+        .ig-item { break-inside: avoid; margin-bottom: 8px; position: relative; border-radius: 8px; overflow: hidden; background: #f4f4f4; }
+        .ig-item img { width: 100%; display: block; cursor: pointer; }
+        .ig-item-text { font-size: .8rem; color: #555; padding: 4px 6px; word-break: break-all; }
+        .ig-item-ops { position: absolute; top: 4px; right: 4px; display: none; gap: 4px; }
+        .ig-item:hover .ig-item-ops { display: flex; }
+        .ig-item-ops span { background: rgba(0,0,0,.6); color: #fff; border-radius: 4px; padding: 2px 7px; cursor: pointer; font-size: .8rem; }
+        .ig-item-meta { font-size: .75rem; color: #888; padding: 0 6px 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .ig-icon-btn { background: #f0f0f0; border: 1px solid #ddd; border-radius: 8px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: #555; font-size: .9rem; padding: 0; }
+        .ig-icon-btn:hover { border-color: var(--primary-green); color: var(--primary-green); }
+        .ig-icon-btn.ig-green { background: var(--primary-green); border-color: var(--primary-green); color: #fff; }
+        .ig-icon-btn.ig-green:hover { opacity: .85; }
+        .ig-icon-btn.ig-danger:hover { border-color: #e53e3e; color: #e53e3e; }
+        .ig-tab-ops { font-size: .75rem; margin-left: 6px; }
+        .ig-tab-ops span { cursor: pointer; padding: 0 3px; }
+        .ig-date-ops { font-size: .8rem; margin-left: 2px; }
+        .ig-date-ops span { cursor: pointer; padding: 0 3px; }
+        .ig-add-imgs { background: var(--primary-green); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: .9rem; }
+        .ig-add-imgs:hover { opacity: .85; }
+
         /* 控制字幕垂直位置 (主要兼容 WebKit 内核如 Chrome/Safari/iOS) */
         video::-webkit-media-text-track-display {
             transform: translateY(calc(-1 * var(--sub-pos))) !important;
@@ -582,8 +617,10 @@ body.preview-mode-active .chat-area {
 
         function initApp() {
             document.getElementById('app-wrapper').innerHTML = `
-                <div id="home-screen" class="screen"><div class="main-content"><div class="container"><div class="header"><h1>世界で一番可愛くて演技も最高な王一博さんの宝物庫</h1></div><div class="category-selection"><div class="category-card" data-category="tv_series"><div class="icon"><i class="fas fa-tv"></i></div><h2>电视剧</h2></div><div class="category-card" data-category="movies"><div class="icon"><i class="fas fa-film"></i></div><h2>电影</h2></div><div class="category-card" data-category="variety"><div class="icon"><i class="fas fa-star"></i></div><h2>综艺</h2></div><div class="category-card" data-category="wechat_generator"><div class="icon"><i class="fas fa-comments"></i></div><h2>聊天生成器</h2></div><div class="category-card" data-category="image_slicer"><div class="icon"><i class="fas fa-crop-alt"></i></div><h2>图片切图工具</h2></div></div><div class="settings-container"><h3>播放器设置</h3><div class="settings-item-group"><label for="seek-time-input">快进/快退秒数:</label><input type="number" id="seek-time-input" min="1" max="30" value="10"></div><div class="settings-item-group" style="margin-top: 10px; width: 100%;"><label for="use-native-player" style="cursor: pointer;"><input type="checkbox" id="use-native-player" style="vertical-align: middle; margin-right: 5px;">使用原生播放器(无截图等自定义功能)</label></div><div class="settings-item-group" style="margin-top: 10px; width: 100%; flex-direction: column; align-items: flex-start;"><label for="proxy-url-input">代理地址 (托管下载/字幕用，可留空):</label><input type="url" id="proxy-url-input" placeholder="https://你的名称.workers.dev/proxy" style="width: 100%; margin-top: 5px; padding: 6px; box-sizing: border-box;"></div><div class="settings-item-group" style="margin-top: 10px; width: 100%;"><label for="proxy-play" style="cursor: pointer;"><input type="checkbox" id="proxy-play" style="vertical-align: middle; margin-right: 5px;">代理播放(截图用，视频走代理加载，稍慢)</label></div><h3>数据管理</h3>
-<div class="data-management-buttons"><button id="export-data-btn" class="btn secondary"><i class="fas fa-download"></i> 导出数据</button><button id="import-data-btn" class="btn secondary"><i class="fas fa-upload"></i> 导入数据</button><button id="reset-data-btn" class="btn danger"><i class="fas fa-undo"></i> 恢复默认</button><input type="file" id="import-file-input" accept=".json"></div></div></div></div><footer class="site-footer" style="display: block;"><p>本工具为粉丝个人制作，仅供修图剪辑和个人收藏使用，请勿用于任何商业用途。</p><p>所有视频内容的版权归原版权方所有。</p></footer></div>
+                <div id="home-screen" class="screen"><div class="main-content"><div class="container"><div class="header"><h1>世界で一番可愛くて演技も最高な王一博さんの宝物庫</h1></div><div class="category-selection"><div class="category-card" data-category="tv_series"><div class="icon"><i class="fas fa-tv"></i></div><h2>电视剧</h2></div><div class="category-card" data-category="movies"><div class="icon"><i class="fas fa-film"></i></div><h2>电影</h2></div><div class="category-card" data-category="variety"><div class="icon"><i class="fas fa-star"></i></div><h2>综艺</h2></div><div class="category-card" data-category="wechat_generator"><div class="icon"><i class="fas fa-comments"></i></div><h2>聊天生成器</h2></div><div class="category-card" data-category="image_slicer"><div class="icon"><i class="fas fa-crop-alt"></i></div><h2>图片切图工具</h2></div><div class="category-card" data-category="image_albums"><div class="icon"><i class="fas fa-images"></i></div><h2>图片物料</h2></div></div><div class="settings-container"><h3>播放器设置</h3><div class="settings-item-group"><label for="seek-time-input">快进/快退秒数:</label><input type="number" id="seek-time-input" min="1" max="30" value="10"></div><div class="settings-item-group" style="margin-top: 10px; width: 100%;"><label for="use-native-player" style="cursor: pointer;"><input type="checkbox" id="use-native-player" style="vertical-align: middle; margin-right: 5px;">使用原生播放器(无截图等自定义功能)</label></div><div class="settings-item-group" style="margin-top: 10px; width: 100%; flex-direction: column; align-items: flex-start;"><label for="proxy-url-input">代理地址 (托管下载/字幕用，可留空):</label><input type="url" id="proxy-url-input" placeholder="https://你的名称.workers.dev/proxy" style="width: 100%; margin-top: 5px; padding: 6px; box-sizing: border-box;"></div><div class="settings-item-group" style="margin-top: 10px; width: 100%;"><label for="proxy-play" style="cursor: pointer;"><input type="checkbox" id="proxy-play" style="vertical-align: middle; margin-right: 5px;">代理播放(截图用，视频走代理加载，稍慢)</label></div><h3>数据管理</h3>
+<div class="data-management-buttons"><button id="export-data-btn" class="btn secondary"><i class="fas fa-download"></i> 导出数据</button><button id="import-data-btn" class="btn secondary"><i class="fas fa-upload"></i> 导入数据</button><button id="reset-data-btn" class="btn danger"><i class="fas fa-undo"></i> 恢复默认</button><input type="file" id="import-file-input" accept=".json"></div>
+<div class="data-management-buttons" style="margin-top:8px;"><button id="cloud-share-btn" class="btn secondary"><i class="fas fa-cloud-upload-alt"></i> 下载分享数据(data.json)</button></div>
+<p class="cloud-tip" style="font-size:.85rem;color:#888;margin-top:6px;line-height:1.5;">云端同步：点上方按钮下载 <b>data.json</b>，把它上传到 GitHub 仓库根目录（与 yibo.html 同一层，覆盖旧文件）。别人打开页面会自动读取这份数据；你每次更新后重新上传覆盖即可。</p></div></div></div><footer class="site-footer" style="display: block;"><p>本工具为粉丝个人制作，仅供修图剪辑和个人收藏使用，请勿用于任何商业用途。</p><p>所有视频内容的版权归原版权方所有。</p></footer></div>
                 <div id="project-list-screen" class="screen"><div class="main-content"><div class="container"><div class="screen-header"><i class="fas fa-arrow-left back-btn" data-target="home-screen"></i><h1 id="project-list-title"></h1></div><ul id="project-list" class="project-list"></ul><div class="add-project-bar"><button id="add-project-btn" class="btn"><i class="fas fa-plus"></i> 添加新项目</button></div></div></div></div>
                 <div id="cut-editor-screen" class="screen"><div class="main-content"><div class="container"><div class="screen-header"><i class="fas fa-arrow-left back-btn" data-target="project-list-screen"></i><div><h1 id="cut-editor-title"></h1><p id="cut-editor-subtitle"></p></div></div><div class="add-project-bar"><button id="add-cut-btn" class="btn"><i class="fas fa-plus"></i> 添加新Cut</button><button id="batch-add-btn" class="btn secondary"><i class="fas fa-stream"></i> 批量添加</button></div><div id="episode-list-container"></div></div></div></div>
                 <div id="play-screen" class="screen">
@@ -763,6 +800,54 @@ body.preview-mode-active .chat-area {
                         </div>
                     </div>
                 </div>
+
+                <div id="image-gallery-screen" class="screen">
+                    <div class="main-content">
+                        <div class="container">
+                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                                <button class="back-btn btn" data-target="home-screen">← 返回</button>
+                                <h2 id="ig-title" style="margin:0;">图片物料</h2>
+                            </div>
+                            <div id="ig-album-view">
+                                <div class="ig-nav-bar">
+                                    <button id="ig-nav-back" class="btn">←</button>
+                                    <span id="ig-nav-title" style="font-weight:600;font-size:1.05rem;flex:1;word-break:break-all;"></span>
+                                    <button id="ig-nav-add" class="btn">＋</button>
+                                </div>
+                                <div id="ig-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="ig-lightbox" style="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.93);display:none;flex-direction:column;align-items:center;justify-content:center;">
+                    <img id="ig-lightbox-img" style="max-width:94vw;max-height:64vh;object-fit:contain;border-radius:8px;">
+                    <div id="ig-lightbox-text" style="color:#fff;margin-top:10px;max-width:82vw;text-align:center;white-space:pre-wrap;word-break:break-all;"></div>
+                    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+                        <button id="ig-lb-prev" class="btn">上一张</button>
+                        <button id="ig-lb-edit" class="btn">编辑</button>
+                        <button id="ig-lb-del" class="btn danger">删除</button>
+                        <button id="ig-lb-next" class="btn">下一张</button>
+                    </div>
+                    <button id="ig-lb-close" class="btn" style="position:absolute;top:14px;right:14px;">✕</button>
+                </div>
+                <div id="ig-edit-modal" class="modal"><div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <h2>编辑图片</h2>
+                    <div class="form">
+                        <div class="form-field"><label>图片链接:</label><input type="url" id="ig-edit-url" style="width:100%;"></div>
+                        <div class="form-field"><label>文本说明:</label><textarea id="ig-edit-text" rows="3" style="width:100%;"></textarea></div>
+                        <button id="ig-edit-save" class="btn">保存</button>
+                    </div>
+                </div></div>
+                <div id="ig-add-modal" class="modal"><div class="modal-content">
+                    <span class="close-btn">&times;</span>
+                    <h2 id="ig-add-title">添加图片</h2>
+                    <div class="form">
+                        <div class="form-field"><label>图片链接（每行一个，可一次粘贴多个）:</label><textarea id="ig-add-urls" rows="5" style="width:100%;"></textarea></div>
+                        <div class="form-field"><label>文本说明（可选，给本次所有图片）:</label><textarea id="ig-add-text" rows="2" style="width:100%;"></textarea></div>
+                        <button id="ig-add-save" class="btn">保存</button>
+                    </div>
+                </div></div>
                 <!-- HTML 模态框等 -->
                 <div id="project-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2 id="project-modal-title"></h2><form id="project-form" class="form"><input type="hidden" id="projectId"><div class="form-field" data-field-id="seriesName"><label for="seriesName">电视剧名:</label><input type="text" id="seriesName"></div><div class="form-field" data-field-id="movieName"><label for="movieName">电影名:</label><input type="text" id="movieName"></div><div class="form-field" data-field-id="showName"><label for="showName">综艺名:</label><input type="text" id="showName"></div><div class="form-field" data-field-id="characterName"><label for="characterName">角色名:</label><input type="text" id="characterName"></div><div class="form-field" data-field-id="season"><label for="season">季/年份:</label><input type="text" id="season"></div><button type="submit" class="btn" id="project-form-submit-btn"></button></form></div></div>
                 <div id="cut-modal" class="modal"><div class="modal-content"><span class="close-btn">&times;</span><h2 id="cut-modal-title"></h2><form id="cut-form" class="form"><input type="hidden" id="cutId"><div class="form-field" data-field-id="episodeNumber"><label id="episode-label" for="episodeNumber"></label><input type="text" id="episodeNumber"></div><div class="form-field"><label for="partName">部分:</label><input type="text" id="partName" placeholder="例如: P1 或 01" required></div><div class="form-field"><label for="cutDescription">简介:</label><textarea id="cutDescription"></textarea></div><div class="source-type-chooser"><label><input type="radio" name="sourceType" value="url" checked> 视频链接</label><label><input type="radio" name="sourceType" value="local"> 本地上传</label></div><div class="form-field" data-source-type="url"><label for="videoLink">视频链接:</label><input type="url" id="videoLink"></div><div class="form-field" data-source-type="url"><label for="subtitleLink">外挂字幕链接 (可选, 支持srt/vtt):</label><input type="url" id="subtitleLink"></div>
@@ -784,8 +869,8 @@ body.preview-mode-active .chat-area {
             const projectModalFields = { 'tv_series': ['seriesName', 'characterName'], 'movies': ['movieName', 'characterName'], 'variety': ['showName', 'season'] };
 
             
-            const getDefaultDB = () => ({ "tv_series": [], "movies": [], "variety": [{"id": 1661040000000, "showName": "一起火锅吧", "season": "第三季", "cuts": {"20220821": [{"id": 1661040000001, "part": "P1", "desc": "", "link": "https://image.uglycat.cc/547iea.mp4"}, {"id": 1661040000002, "part": "P2", "desc": "", "link": "https://image.uglycat.cc/c464ps.mp4"}, {"id": 1661040000003, "part": "P3", "desc": "", "link": "https://image.uglycat.cc/1rpb3z.mp4"}, {"id": 1661040000004, "part": "P4", "desc": "", "link": "https://image.uglycat.cc/uj398g.mp4"}, {"id": 1661040000005, "part": "P5", "desc": "", "link": "https://image.uglycat.cc/jf4i0u.mp4"}, {"id": 1661040000006, "part": "P6", "desc": "", "link": "https://image.uglycat.cc/02lrfb.mp4"}, {"id": 1661040000007, "part": "P7", "desc": "", "link": "https://image.uglycat.cc/3hsmnc.mp4"}, {"id": 1661040000008, "part": "P8", "desc": "", "link": "https://image.uglycat.cc/q57abo.mp4"}, {"id": 1661040000009, "part": "P9", "desc": "", "link": "https://image.uglycat.cc/mih52y.mp4"}, {"id": 1661040000010, "part": "P10", "desc": "", "link": "https://image.uglycat.cc/9h32yv.mp4"}, {"id": 1661040000011, "part": "P11", "desc": "", "link": "https://image.uglycat.cc/uzha5f.mp4"}, {"id": 1661040000012, "part": "P12", "desc": "", "link": "https://image.uglycat.cc/cfaczb.mp4"}, {"id": 1661040000013, "part": "P13", "desc": "", "link": "https://image.uglycat.cc/p27cqr.mp4"}, {"id": 1661040000014, "part": "P14", "desc": "", "link": "https://image.uglycat.cc/mqhddj.mp4"}, {"id": 1661040000015, "part": "P15", "desc": "", "link": "https://image.uglycat.cc/4hd7v4.mp4"}, {"id": 1661040000016, "part": "P16", "desc": "", "link": "https://image.uglycat.cc/kx14zj.mp4"}, {"id": 1661040000017, "part": "P17", "desc": "", "link": "https://image.uglycat.cc/4nzi1o.mp4"}, {"id": 1661040000018, "part": "P18", "desc": "", "link": "https://image.uglycat.cc/w6jfpd.mp4"}], "20220828": [{"id": 1661644800001, "part": "P1", "desc": "", "link": "https://image.uglycat.cc/hq9zer.mp4"}, {"id": 1661644800002, "part": "P2", "desc": "", "link": "https://image.uglycat.cc/fs2tvh.mp4"}, {"id": 1661644800003, "part": "P3", "desc": "", "link": "https://image.uglycat.cc/7vhkuq.mp4"}, {"id": 1661644800004, "part": "P4", "desc": "", "link": "https://image.uglycat.cc/lp4i5x.mp4"}, {"id": 1661644800005, "part": "P5", "desc": "", "link": "https://image.uglycat.cc/4b60qe.mp4"}, {"id": 1661644800006, "part": "P6", "desc": "", "link": "https://image.uglycat.cc/2j2bte.mp4"}, {"id": 1661644800007, "part": "P7", "desc": "", "link": "https://image.uglycat.cc/acnu63.mp4"}, {"id": 1661644800008, "part": "P8", "desc": "", "link": "https://image.uglycat.cc/pey926.mp4"}, {"id": 1661644800009, "part": "P9", "desc": "", "link": "https://image.uglycat.cc/esyhvw.mp4"}, {"id": 1661644800010, "part": "P10", "desc": "", "link": "https://image.uglycat.cc/y852cb.mp4"}, {"id": 1661644800011, "part": "P11", "desc": "", "link": "https://image.uglycat.cc/99kmgm.mp4"}, {"id": 1661644800012, "part": "P12", "desc": "", "link": "https://image.uglycat.cc/l2wxuo.mp4"}, {"id": 1661644800013, "part": "P13", "desc": "", "link": "https://image.uglycat.cc/dc5mq4.mp4"}, {"id": 1661644800014, "part": "P14", "desc": "", "link": "https://image.uglycat.cc/w1uo4p.mp4"}, {"id": 1661644800015, "part": "P15", "desc": "", "link": "https://image.uglycat.cc/yykgho.mp4"}, {"id": 1661644800016, "part": "P16", "desc": "", "link": "https://image.uglycat.cc/05r0bw.mp4"}, {"id": 1661644800017, "part": "P17", "desc": "", "link": "https://image.uglycat.cc/pfp0eg.mp4"}, {"id": 1661644800018, "part": "P18", "desc": "", "link": "https://image.uglycat.cc/36s004.mp4"}, {"id": 1661644800019, "part": "P19", "desc": "", "link": "https://image.uglycat.cc/4u9wuf.mp4"}, {"id": 1661644800020, "part": "P20", "desc": "", "link": "https://image.uglycat.cc/90p7wk.mp4"}, {"id": 1661644800021, "part": "P21", "desc": "", "link": "https://image.uglycat.cc/odx4j6.mp4"}, {"id": 1661644800022, "part": "P22", "desc": "", "link": "https://image.uglycat.cc/l9fri4.mp4"}, {"id": 1661644800023, "part": "P23", "desc": "", "link": "https://image.uglycat.cc/93sam4.mp4"}, {"id": 1661644800024, "part": "P24", "desc": "", "link": "https://image.uglycat.cc/y4ocry.mp4"}, {"id": 1661644800025, "part": "P25", "desc": "", "link": "https://image.uglycat.cc/9upzmy.mp4"}, {"id": 1661644800026, "part": "P26", "desc": "", "link": "https://image.uglycat.cc/4royto.mp4"}, {"id": 1661644800027, "part": "P27", "desc": "", "link": "https://image.uglycat.cc/nnwt5k.mp4"}, {"id": 1661644800028, "part": "P28", "desc": "", "link": "https://image.uglycat.cc/6isgjp.mp4"}, {"id": 1661644800029, "part": "P29", "desc": "", "link": "https://image.uglycat.cc/tyjsse.mp4"}, {"id": 1661644800030, "part": "P30", "desc": "", "link": "https://image.uglycat.cc/p766cc.mp4"}, {"id": 1661644800031, "part": "P31", "desc": "", "link": "https://image.uglycat.cc/a5j63g.mp4"}, {"id": 1661644800032, "part": "P32", "desc": "", "link": "https://image.uglycat.cc/id7q03.mp4"}]}}]});
-            const getDB = () => JSON.parse(localStorage.getItem('yiboCutsDB_v16')) || getDefaultDB();
+            const getDefaultDB = () => ({ "tv_series": [], "movies": [], "variety": [{"id": 1661040000000, "showName": "一起火锅吧", "season": "第三季", "cuts": {"20220821": [{"id": 1661040000001, "part": "P1", "desc": "", "link": "https://image.uglycat.cc/547iea.mp4"}, {"id": 1661040000002, "part": "P2", "desc": "", "link": "https://image.uglycat.cc/c464ps.mp4"}, {"id": 1661040000003, "part": "P3", "desc": "", "link": "https://image.uglycat.cc/1rpb3z.mp4"}, {"id": 1661040000004, "part": "P4", "desc": "", "link": "https://image.uglycat.cc/uj398g.mp4"}, {"id": 1661040000005, "part": "P5", "desc": "", "link": "https://image.uglycat.cc/jf4i0u.mp4"}, {"id": 1661040000006, "part": "P6", "desc": "", "link": "https://image.uglycat.cc/02lrfb.mp4"}, {"id": 1661040000007, "part": "P7", "desc": "", "link": "https://image.uglycat.cc/3hsmnc.mp4"}, {"id": 1661040000008, "part": "P8", "desc": "", "link": "https://image.uglycat.cc/q57abo.mp4"}, {"id": 1661040000009, "part": "P9", "desc": "", "link": "https://image.uglycat.cc/mih52y.mp4"}, {"id": 1661040000010, "part": "P10", "desc": "", "link": "https://image.uglycat.cc/9h32yv.mp4"}, {"id": 1661040000011, "part": "P11", "desc": "", "link": "https://image.uglycat.cc/uzha5f.mp4"}, {"id": 1661040000012, "part": "P12", "desc": "", "link": "https://image.uglycat.cc/cfaczb.mp4"}, {"id": 1661040000013, "part": "P13", "desc": "", "link": "https://image.uglycat.cc/p27cqr.mp4"}, {"id": 1661040000014, "part": "P14", "desc": "", "link": "https://image.uglycat.cc/mqhddj.mp4"}, {"id": 1661040000015, "part": "P15", "desc": "", "link": "https://image.uglycat.cc/4hd7v4.mp4"}, {"id": 1661040000016, "part": "P16", "desc": "", "link": "https://image.uglycat.cc/kx14zj.mp4"}, {"id": 1661040000017, "part": "P17", "desc": "", "link": "https://image.uglycat.cc/4nzi1o.mp4"}, {"id": 1661040000018, "part": "P18", "desc": "", "link": "https://image.uglycat.cc/w6jfpd.mp4"}], "20220828": [{"id": 1661644800001, "part": "P1", "desc": "", "link": "https://image.uglycat.cc/hq9zer.mp4"}, {"id": 1661644800002, "part": "P2", "desc": "", "link": "https://image.uglycat.cc/fs2tvh.mp4"}, {"id": 1661644800003, "part": "P3", "desc": "", "link": "https://image.uglycat.cc/7vhkuq.mp4"}, {"id": 1661644800004, "part": "P4", "desc": "", "link": "https://image.uglycat.cc/lp4i5x.mp4"}, {"id": 1661644800005, "part": "P5", "desc": "", "link": "https://image.uglycat.cc/4b60qe.mp4"}, {"id": 1661644800006, "part": "P6", "desc": "", "link": "https://image.uglycat.cc/2j2bte.mp4"}, {"id": 1661644800007, "part": "P7", "desc": "", "link": "https://image.uglycat.cc/acnu63.mp4"}, {"id": 1661644800008, "part": "P8", "desc": "", "link": "https://image.uglycat.cc/pey926.mp4"}, {"id": 1661644800009, "part": "P9", "desc": "", "link": "https://image.uglycat.cc/esyhvw.mp4"}, {"id": 1661644800010, "part": "P10", "desc": "", "link": "https://image.uglycat.cc/y852cb.mp4"}, {"id": 1661644800011, "part": "P11", "desc": "", "link": "https://image.uglycat.cc/99kmgm.mp4"}, {"id": 1661644800012, "part": "P12", "desc": "", "link": "https://image.uglycat.cc/l2wxuo.mp4"}, {"id": 1661644800013, "part": "P13", "desc": "", "link": "https://image.uglycat.cc/dc5mq4.mp4"}, {"id": 1661644800014, "part": "P14", "desc": "", "link": "https://image.uglycat.cc/w1uo4p.mp4"}, {"id": 1661644800015, "part": "P15", "desc": "", "link": "https://image.uglycat.cc/yykgho.mp4"}, {"id": 1661644800016, "part": "P16", "desc": "", "link": "https://image.uglycat.cc/05r0bw.mp4"}, {"id": 1661644800017, "part": "P17", "desc": "", "link": "https://image.uglycat.cc/pfp0eg.mp4"}, {"id": 1661644800018, "part": "P18", "desc": "", "link": "https://image.uglycat.cc/36s004.mp4"}, {"id": 1661644800019, "part": "P19", "desc": "", "link": "https://image.uglycat.cc/4u9wuf.mp4"}, {"id": 1661644800020, "part": "P20", "desc": "", "link": "https://image.uglycat.cc/90p7wk.mp4"}, {"id": 1661644800021, "part": "P21", "desc": "", "link": "https://image.uglycat.cc/odx4j6.mp4"}, {"id": 1661644800022, "part": "P22", "desc": "", "link": "https://image.uglycat.cc/l9fri4.mp4"}, {"id": 1661644800023, "part": "P23", "desc": "", "link": "https://image.uglycat.cc/93sam4.mp4"}, {"id": 1661644800024, "part": "P24", "desc": "", "link": "https://image.uglycat.cc/y4ocry.mp4"}, {"id": 1661644800025, "part": "P25", "desc": "", "link": "https://image.uglycat.cc/9upzmy.mp4"}, {"id": 1661644800026, "part": "P26", "desc": "", "link": "https://image.uglycat.cc/4royto.mp4"}, {"id": 1661644800027, "part": "P27", "desc": "", "link": "https://image.uglycat.cc/nnwt5k.mp4"}, {"id": 1661644800028, "part": "P28", "desc": "", "link": "https://image.uglycat.cc/6isgjp.mp4"}, {"id": 1661644800029, "part": "P29", "desc": "", "link": "https://image.uglycat.cc/tyjsse.mp4"}, {"id": 1661644800030, "part": "P30", "desc": "", "link": "https://image.uglycat.cc/p766cc.mp4"}, {"id": 1661644800031, "part": "P31", "desc": "", "link": "https://image.uglycat.cc/a5j63g.mp4"}, {"id": 1661644800032, "part": "P32", "desc": "", "link": "https://image.uglycat.cc/id7q03.mp4"}]}}], "image_albums": []});
+            const getDB = () => { const d = JSON.parse(localStorage.getItem('yiboCutsDB_v16')) || getDefaultDB(); if(!Array.isArray(d.image_albums)) d.image_albums = []; return d; };
             const saveDB = () => localStorage.setItem('yiboCutsDB_v16', JSON.stringify(state.db));
             const getSettings = () => Object.assign({ seekTime: 10, useNativePlayer: false, proxyUrl: '', proxyPlay: false }, JSON.parse(localStorage.getItem('yiboCutsSettings')) || {});
             const saveSettings = () => localStorage.setItem('yiboCutsSettings', JSON.stringify(state.settings));
@@ -798,27 +883,66 @@ body.preview-mode-active .chat-area {
     const done=()=>{if(typeof cb==='function')cb();};
     const p=proxyFor(u);
     if(!p){window.open(u,'_blank','noopener');done();return;}
-    fetch(p).then(r=>{
-        if(!r.ok)throw new Error('HTTP '+r.status);
-        const total=parseInt(r.headers.get('Content-Length')||'0')||0;
-        const reader=r.body.getReader();
-        const chunks=[];let got=0;
-        const tick=()=>{
-            if(!dlStatus)return;
-            if(total>0){const pct=Math.min(100,Math.round(got/total*100));dlStatus('下载中 '+fname+' '+pct+'% ('+(got/1048576).toFixed(1)+'MB/'+(total/1048576).toFixed(1)+'MB)');}
-            else{dlStatus('下载中 '+fname+' 已接收 '+(got/1048576).toFixed(1)+'MB');}
-        };
-        const pump=()=>reader.read().then(res=>{
-            if(res.done){
-                const b=new Blob(chunks,{type:r.headers.get('Content-Type')||'application/octet-stream'});
-                const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;document.body.appendChild(a);a.click();
-                setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},3000);
-                done();return;
-            }
-            chunks.push(res.value);got+=res.value.length;tick();return pump();
-        }).catch(()=>{window.open(u,'_blank','noopener');done();});
-        pump();
-    }).catch(()=>{window.open(u,'_blank','noopener');done();});
+    const CHUNK=90*1024*1024;
+    // 探测文件总大小（Range: bytes=0-0 拿 Content-Range）
+    const probe=()=>fetch(p,{headers:{'Range':'bytes=0-0'}}).then(r=>{
+        const cr=r.headers.get('Content-Range')||'';
+        const m=/bytes \d+-\d+\/(\d+)/.exec(cr);
+        if(m)return parseInt(m[1]);
+        const cl=parseInt(r.headers.get('Content-Length')||'0');
+        return cl>1?cl:0;
+    }).catch(()=>0);
+    probe().then(total=>{
+        if(total>CHUNK){
+            // 大文件：分段下载拼接（每段 <90MB，绕过代理100MB单响应限制）
+            const n=Math.ceil(total/CHUNK);
+            const parts=[];let seg=0;
+            const nextSeg=()=>{
+                if(seg>=n){
+                    const b=new Blob(parts,{type:'video/mp4'});
+                    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;document.body.appendChild(a);a.click();
+                    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},3000);
+                    done();return;
+                }
+                const startB=seg*CHUNK;
+                const endB=Math.min(total,startB+CHUNK)-1;
+                fetch(p,{headers:{'Range':'bytes='+startB+'-'+endB}}).then(r=>{
+                    if(!r.ok)throw new Error('HTTP '+r.status);
+                    return r.blob();
+                }).then(b=>{
+                    parts.push(b);
+                    const pct=Math.min(100,Math.round(((seg+1)*CHUNK)/total*100));
+                    dlStatus('下载中 '+fname+' 分段 '+(seg+1)+'/'+n+' '+pct+'% ('+(((seg+1)*CHUNK)/1048576).toFixed(0)+'MB/'+(total/1048576).toFixed(0)+'MB)');
+                    seg++;nextSeg();
+                }).catch(()=>{window.open(u,'_blank','noopener');done();});
+            };
+            dlStatus('大文件分段下载 '+fname+' ('+(total/1048576).toFixed(0)+'MB, '+n+'段)');
+            nextSeg();
+        }else{
+            // 小文件：全量流式下载+实时进度
+            fetch(p).then(r=>{
+                if(!r.ok)throw new Error('HTTP '+r.status);
+                const tlen=parseInt(r.headers.get('Content-Length')||'0')||0;
+                const reader=r.body.getReader();
+                const chunks=[];let got=0;
+                const tick=()=>{
+                    if(!dlStatus)return;
+                    if(tlen>0){const pct=Math.min(100,Math.round(got/tlen*100));dlStatus('下载中 '+fname+' '+pct+'% ('+(got/1048576).toFixed(1)+'MB/'+(tlen/1048576).toFixed(1)+'MB)');}
+                    else{dlStatus('下载中 '+fname+' 已接收 '+(got/1048576).toFixed(1)+'MB');}
+                };
+                const pump=()=>reader.read().then(res=>{
+                    if(res.done){
+                        const b=new Blob(chunks,{type:r.headers.get('Content-Type')||'application/octet-stream'});
+                        const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;document.body.appendChild(a);a.click();
+                        setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},3000);
+                        done();return;
+                    }
+                    chunks.push(res.value);got+=res.value.length;tick();return pump();
+                }).catch(()=>{window.open(u,'_blank','noopener');done();});
+                pump();
+            }).catch(()=>{window.open(u,'_blank','noopener');done();});
+        }
+    });
 };
             const downloadEpisode=(epKey)=>{const p=findProject(state.currentCategory,state.currentProjectId);if(!p||!p.cuts[epKey]||!p.cuts[epKey].length){alert('该期没有可下载的视频');return;}const cuts=p.cuts[epKey].slice().sort((a,b)=>a.part.localeCompare(b,undefined,{numeric:true}));const base=(state.currentCategory==='tv_series'?'第':'')+epKey+(state.currentCategory==='tv_series'?'集':'期');const projName=p.seriesName||p.movieName||p.showName||'剧集';let i=0;const next=()=>{if(i>=cuts.length){dlStatus('本集全部完成 ('+cuts.length+' 个)');setTimeout(()=>dlStatus(''),2000);return;}const c=cuts[i];const nm=projName+'-'+base+'-'+(c.part||('P'+(i+1)));dlStatus('下载中 ('+(i+1)+'/'+cuts.length+') '+nm);i++;setTimeout(()=>downloadOne(c,nm,()=>setTimeout(next,400)),120);};next();};
             const showScreen = (id) => { state.currentScreen = id; document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); if(['play-screen', 'wechat-gen-screen', 'image-slicer-screen'].includes(id)) window.scrollTo(0, 0);};
@@ -1114,7 +1238,7 @@ uR.onchange=()=>tS('url');lR.onchange=()=>tS('local');if(isE){const cut=findProj
             new MutationObserver(handleFullscreenUiChange).observe(playerContainer, { attributes: true, attributeFilter: ['class'] });
             window.addEventListener('orientationchange', handleOrientationChange); window.addEventListener('resize', handleOrientationChange);
             document.body.addEventListener('click', e => { const k=e.target.closest(".kebab-toggle");document.querySelectorAll(".kebab-dropdown.active").forEach(d=>{if(!d.previousElementSibling.contains(e.target))d.classList.remove("active")});if(k){e.stopPropagation();k.nextElementSibling.classList.toggle("active")}            const p=e.target.closest(".play-link-btn");if(p){const t=p.closest("tr"),i=parseInt(t.dataset.cutId);const y=t.closest(".episode-item").dataset.episodeKey;const j=findProject(state.currentCategory,state.currentProjectId);state.currentPlaylist=j.cuts[y].sort((a, b) => a.part.localeCompare(b, undefined, { numeric: true })).map(c=>({...c,episodeKey:y}));state.currentPlaylistIndex=state.currentPlaylist.findIndex(c=>c.id===i);loadAndPlayCut(state.currentPlaylistIndex);showScreen("play-screen");return}const extBtn=e.target.closest(".external-play-btn");if(extBtn){const t=extBtn.closest("tr"),i=parseInt(t.dataset.cutId),y=t.closest(".episode-item").dataset.episodeKey,j=findProject(state.currentCategory,state.currentProjectId),cut=j.cuts[y].find(c=>c.id===i);if(cut&&cut.link){const isAndroid=/Android/i.test(navigator.userAgent);const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);if(isAndroid){const scheme=cut.link.startsWith('https')?'https':'http';const urlWithoutHttp=cut.link.replace(/^https?:\/\//,'');window.location.href=`intent://${urlWithoutHttp}#Intent;scheme=${scheme};type=video/*;action=android.intent.action.VIEW;end;`;}else if(isIOS){window.location.href=`vidhub://play?url=${encodeURIComponent(cut.link)}`;}else{window.open(cut.link,'_blank');}}return;}const l=e.target.closest(".playlist-item");
-if(l){loadAndPlayCut(parseInt(l.dataset.index))}const c=e.target.closest(".category-card");if(c){const cat = c.dataset.category; if(cat === 'wechat_generator'){ showScreen('wechat-gen-screen'); } else if(cat === 'image_slicer') { showScreen('image-slicer-screen'); } else { state.currentCategory=cat;renderProjectList();showScreen("project-list-screen"); } }const b=e.target.closest(".back-btn");if(b){if(b.dataset.target==="cut-editor-screen"){video.pause();if(video.currentSrc&&video.currentSrc.startsWith("blob:")){URL.revokeObjectURL(video.currentSrc)}video.removeAttribute("src")}showScreen(b.dataset.target)}const x=e.target.closest(".close-btn");if(x){closeModal(x.closest(".modal").id)}if(e.target.closest("#add-project-btn")){setupProjectModal()}if(e.target.closest("#batch-add-btn")){const a=document.getElementById("batch-episode-label"),n=document.getElementById("batchEpisodeKey");if(state.currentCategory==="movies"){a.style.display="none";n.style.display="none";n.required=false}else{a.style.display="block";n.style.display="block";n.required=true;a.textContent=state.currentCategory==="tv_series"?"所属集数:":"所属期数:"}openModal("batch-add-modal")}const o=e.target.closest(".project-info");if(o){state.currentProjectId=parseInt(o.dataset.id);renderCutEditor();showScreen("cut-editor-screen")}const d=e.target.closest(".edit-project-btn");if(d){setupProjectModal(parseInt(d.dataset.id))}const g=e.target.closest(".delete-project-btn");if(g){const h=parseInt(g.dataset.id);showConfirmModal("确认删除项目","您确定要永久删除此项目及其包含的所有Cut吗？此操作无法撤销。",()=>{state.db[state.currentCategory]=state.db[state.currentCategory].filter(p=>p.id!==h);saveDB();renderProjectList();closeModal("confirm-modal")})}if(e.target.closest("#add-cut-btn")){setupCutModal()}            const q=e.target.closest(".open-closet-btn");if(q){e.stopPropagation();const w=q.closest(".episode-item").dataset.episodeKey;initCloset(state.currentProjectId,w);document.getElementById("closet-modal").style.display="flex";return}const editEp=e.target.closest(".edit-episode-btn");if(editEp){e.stopPropagation();const epItem=editEp.closest(".episode-item");const oldKey=epItem.dataset.episodeKey;const newKey=prompt("请输入新的期数/集数名称：",oldKey);if(newKey&&newKey.trim()!==""&&newKey!==oldKey){const p=findProject(state.currentCategory,state.currentProjectId);if(p.cuts[newKey]){alert("该期数/集数已存在！")}else{p.cuts[newKey]=p.cuts[oldKey];delete p.cuts[oldKey];saveDB();renderCutEditor()}}return}const delEp=e.target.closest(".delete-episode-btn");if(delEp){e.stopPropagation();const epItem=delEp.closest(".episode-item");const oldKey=epItem.dataset.episodeKey;showConfirmModal("确认删除整期","您确定要删除这一期及其包含的所有Cut吗？此操作无法撤销。",()=>{const p=findProject(state.currentCategory,state.currentProjectId);delete p.cuts[oldKey];saveDB();renderCutEditor();closeModal("confirm-modal")});return}const dlEp=e.target.closest(".download-episode-btn");if(dlEp){e.stopPropagation();downloadEpisode(dlEp.closest(".episode-item").dataset.episodeKey);return}const z=e.target.closest(".episode-header");if(z){z.classList.toggle("active");const m=z.nextElementSibling;m.style.maxHeight=m.style.maxHeight?null:m.scrollHeight+"px"}const directDl=e.target.closest(".direct-download-btn");if(directDl){const tr=directDl.closest("tr"),epKey=tr.closest(".episode-item").dataset.episodeKey,project=findProject(state.currentCategory,state.currentProjectId),cut=project.cuts[epKey].find(item=>item.id===parseInt(tr.dataset.cutId));if(cut&&cut.link)downloadOne(cut,(project.seriesName||project.movieName||project.showName||'剧集')+'-'+epKey+'-'+(cut.part||'cut'));return}const u=e.target.closest(".edit-cut-btn");
+if(l){loadAndPlayCut(parseInt(l.dataset.index))}const c=e.target.closest(".category-card");if(c){const cat = c.dataset.category; if(cat === 'wechat_generator'){ showScreen('wechat-gen-screen'); } else if(cat === 'image_slicer') { showScreen('image-slicer-screen'); } else if(cat === 'image_albums') { renderImageGallery(); showScreen('image-gallery-screen'); } else { state.currentCategory=cat;renderProjectList();showScreen("project-list-screen"); } }const b=e.target.closest(".back-btn");if(b){if(b.dataset.target==="cut-editor-screen"){video.pause();if(video.currentSrc&&video.currentSrc.startsWith("blob:")){URL.revokeObjectURL(video.currentSrc)}video.removeAttribute("src")}showScreen(b.dataset.target)}const x=e.target.closest(".close-btn");if(x){closeModal(x.closest(".modal").id)}if(e.target.closest("#add-project-btn")){setupProjectModal()}if(e.target.closest("#batch-add-btn")){const a=document.getElementById("batch-episode-label"),n=document.getElementById("batchEpisodeKey");if(state.currentCategory==="movies"){a.style.display="none";n.style.display="none";n.required=false}else{a.style.display="block";n.style.display="block";n.required=true;a.textContent=state.currentCategory==="tv_series"?"所属集数:":"所属期数:"}openModal("batch-add-modal")}const o=e.target.closest(".project-info");if(o){state.currentProjectId=parseInt(o.dataset.id);renderCutEditor();showScreen("cut-editor-screen")}const d=e.target.closest(".edit-project-btn");if(d){setupProjectModal(parseInt(d.dataset.id))}const g=e.target.closest(".delete-project-btn");if(g){const h=parseInt(g.dataset.id);showConfirmModal("确认删除项目","您确定要永久删除此项目及其包含的所有Cut吗？此操作无法撤销。",()=>{state.db[state.currentCategory]=state.db[state.currentCategory].filter(p=>p.id!==h);saveDB();renderProjectList();closeModal("confirm-modal")})}if(e.target.closest("#add-cut-btn")){setupCutModal()}            const q=e.target.closest(".open-closet-btn");if(q){e.stopPropagation();const w=q.closest(".episode-item").dataset.episodeKey;initCloset(state.currentProjectId,w);document.getElementById("closet-modal").style.display="flex";return}const editEp=e.target.closest(".edit-episode-btn");if(editEp){e.stopPropagation();const epItem=editEp.closest(".episode-item");const oldKey=epItem.dataset.episodeKey;const newKey=prompt("请输入新的期数/集数名称：",oldKey);if(newKey&&newKey.trim()!==""&&newKey!==oldKey){const p=findProject(state.currentCategory,state.currentProjectId);if(p.cuts[newKey]){alert("该期数/集数已存在！")}else{p.cuts[newKey]=p.cuts[oldKey];delete p.cuts[oldKey];saveDB();renderCutEditor()}}return}const delEp=e.target.closest(".delete-episode-btn");if(delEp){e.stopPropagation();const epItem=delEp.closest(".episode-item");const oldKey=epItem.dataset.episodeKey;showConfirmModal("确认删除整期","您确定要删除这一期及其包含的所有Cut吗？此操作无法撤销。",()=>{const p=findProject(state.currentCategory,state.currentProjectId);delete p.cuts[oldKey];saveDB();renderCutEditor();closeModal("confirm-modal")});return}const dlEp=e.target.closest(".download-episode-btn");if(dlEp){e.stopPropagation();downloadEpisode(dlEp.closest(".episode-item").dataset.episodeKey);return}const z=e.target.closest(".episode-header");if(z){z.classList.toggle("active");const m=z.nextElementSibling;m.style.maxHeight=m.style.maxHeight?null:m.scrollHeight+"px"}const directDl=e.target.closest(".direct-download-btn");if(directDl){const tr=directDl.closest("tr"),epKey=tr.closest(".episode-item").dataset.episodeKey,project=findProject(state.currentCategory,state.currentProjectId),cut=project.cuts[epKey].find(item=>item.id===parseInt(tr.dataset.cutId));if(cut&&cut.link)downloadOne(cut,(project.seriesName||project.movieName||project.showName||'剧集')+'-'+epKey+'-'+(cut.part||'cut'));return}const u=e.target.closest(".edit-cut-btn");
 if(u){const f=u.closest("tr");const v=f.closest(".episode-item").dataset.episodeKey;setupCutModal(parseInt(f.dataset.cutId),v)}const r=e.target.closest(".delete-cut-btn");if(r){showConfirmModal("确认删除Cut","您确定要删除此条Cut吗？",()=>{const s=r.closest("tr");const t=s.closest(".episode-item").dataset.episodeKey;const i=parseInt(s.dataset.cutId);const p=findProject(state.currentCategory,state.currentProjectId);p.cuts[t]=p.cuts[t].filter(c=>c.id!==i);if(p.cuts[t].length===0)delete p.cuts[t];saveDB();renderCutEditor();closeModal("confirm-modal")})}if(e.target.closest("#confirm-ok-btn")){if(typeof state.confirmCallback==="function"){state.confirmCallback();state.confirmCallback=null}}if(e.target.closest("#confirm-cancel-btn")){closeModal("confirm-modal");state.confirmCallback=null}});
             window.onclick = (e) => { if (!e.target.closest('.kebab-menu-container')) { document.querySelectorAll('.kebab-dropdown.active').forEach(d => d.classList.remove('active')); } if (e.target.classList.contains('modal')) closeModal(e.target.id); };
             document.getElementById('project-form').addEventListener('submit', e => { e.preventDefault(); const f = e.target; const id = parseInt(f.querySelector('#projectId').value); const p = isNaN(id) ? { id: Date.now(), cuts: {} } : findProject(state.currentCategory, id); projectModalFields[state.currentCategory].forEach(fid => { p[fid] = f.querySelector(`#${fid}`).value; }); if (isNaN(id)) state.db[state.currentCategory].push(p); saveDB(); renderProjectList(); closeModal('project-modal'); });
@@ -1124,9 +1248,163 @@ if(isNaN(id)){if(!p.cuts[k])p.cuts[k]=[];p.cuts[k].push({id:Date.now(),part:f.qu
  if (!p.cuts[k]) p.cuts[k] = []; p.cuts[k].push(...newCuts); saveDB(); renderCutEditor(); e.target.reset(); closeModal("batch-add-modal"); });
             const createResumePrompt = (pos) => { const p=findProject(pos.category,pos.projectId);if(!p)return;const c=pos.playlist[pos.playlistIndex];const e=document.createElement("div");e.id="resume-prompt";let t,s;switch(pos.category){case"tv_series":t=`${p.seriesName} (角色: ${p.characterName})`;s=`上次看到: 第${c.episodeKey}集 ${c.part}`;break;case"movies":t=p.movieName;s=`上次看到: 片段 ${c.part}`;break;case"variety":t=p.showName;s=`上次看到: ${c.episodeKey}期 ${c.part}`}e.innerHTML=`<div class="info"><h4>${t}</h4><p>${s}</p></div><i class="fas fa-play-circle resume-btn"></i><i class="fas fa-times close-resume-btn"></i>`;document.getElementById("home-screen").appendChild(e);e.querySelector(".resume-btn").onclick=()=>{state.currentCategory=pos.category;state.currentProjectId=pos.projectId;state.currentPlaylist=pos.playlist;loadAndPlayCut(pos.playlistIndex,pos.time);showScreen("play-screen");e.remove()};e.querySelector(".close-resume-btn").onclick=()=>{localStorage.removeItem("lastPlaybackPosition");e.remove()}};
             const findCutKeyById = (project, cutId) => { for (const key in project.cuts) { if (project.cuts[key].some(c => c.id === cutId)) return key; } return null; };
-            const initDataManagement = () => { const exportBtn = document.getElementById('export-data-btn'); const importBtn = document.getElementById('import-data-btn'); const importFileInput = document.getElementById('import-file-input'); const resetBtn = document.getElementById('reset-data-btn'); exportBtn.addEventListener('click', () => { const dataStr = JSON.stringify(state.db, null, 2); const dataBlob = new Blob([dataStr], {type: 'application/json'}); const url = URL.createObjectURL(dataBlob); const link = document.createElement('a'); link.href = url; link.download = `yibo-treasure-backup-${new Date().toISOString().split('T')[0]}.json`; link.click(); URL.revokeObjectURL(url); }); importBtn.addEventListener('click', () => importFileInput.click()); importFileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { showConfirmModal('确认导入数据', '这将覆盖您当前的所有数据，确定要导入吗？此操作无法撤销。', () => { try { const importedData = JSON.parse(event.target.result); if (importedData.tv_series && importedData.movies && importedData.variety) { localStorage.setItem('yiboCutsDB_v16', JSON.stringify(importedData)); alert('数据导入成功！页面将刷新以应用更改。'); location.reload(); } else { alert('导入失败：文件格式不正确。'); } } catch (error) { alert('导入失败：文件解析错误。'); } closeModal('confirm-modal'); }, '确认导入'); }; reader.readAsText(file); importFileInput.value = ''; }); resetBtn.addEventListener('click', () => { showConfirmModal('恢复默认数据', '您确定要恢复到初始数据吗？您添加或修改的所有内容都将丢失。', () => { localStorage.removeItem('yiboCutsDB_v16'); localStorage.removeItem('lastPlaybackPosition'); alert('数据已重置。页面将刷新。'); location.reload(); }, '确认恢复'); }); };
+            const initDataManagement = () => { const cloudBtn = document.getElementById('cloud-share-btn'); if(cloudBtn){ cloudBtn.addEventListener('click', () => { const dataStr = JSON.stringify(state.db, null, 2); const blob = new Blob([dataStr], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'data.json'; a.click(); URL.revokeObjectURL(a.href); }); } const exportBtn = document.getElementById('export-data-btn'); const importBtn = document.getElementById('import-data-btn'); const importFileInput = document.getElementById('import-file-input'); const resetBtn = document.getElementById('reset-data-btn'); exportBtn.addEventListener('click', () => { const dataStr = JSON.stringify(state.db, null, 2); const dataBlob = new Blob([dataStr], {type: 'application/json'}); const url = URL.createObjectURL(dataBlob); const link = document.createElement('a'); link.href = url; link.download = `yibo-treasure-backup-${new Date().toISOString().split('T')[0]}.json`; link.click(); URL.revokeObjectURL(url); }); importBtn.addEventListener('click', () => importFileInput.click()); importFileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { showConfirmModal('确认导入数据', '这将覆盖您当前的所有数据，确定要导入吗？此操作无法撤销。', () => { try { const importedData = JSON.parse(event.target.result); if (importedData.tv_series && importedData.movies && importedData.variety) { localStorage.setItem('yiboCutsDB_v16', JSON.stringify(importedData)); alert('数据导入成功！页面将刷新以应用更改。'); location.reload(); } else { alert('导入失败：文件格式不正确。'); } } catch (error) { alert('导入失败：文件解析错误。'); } closeModal('confirm-modal'); }, '确认导入'); }; reader.readAsText(file); importFileInput.value = ''; }); resetBtn.addEventListener('click', () => { showConfirmModal('恢复默认数据', '您确定要恢复到初始数据吗？您添加或修改的所有内容都将丢失。', () => { localStorage.removeItem('yiboCutsDB_v16'); localStorage.removeItem('lastPlaybackPosition'); alert('数据已重置。页面将刷新。'); location.reload(); }, '确认恢复'); }); };
             const applyPlayerMode = () => { const useNative = state.settings.useNativePlayer; const vid = document.getElementById('main-video-player'); const customUI = document.querySelectorAll('.video-overlay, .custom-controls, .seek-indicator, .loading-overlay'); if(useNative) { vid.setAttribute('controls', 'controls'); customUI.forEach(el => el.style.display = 'none'); } else { vid.removeAttribute('controls'); customUI.forEach(el => el.style.display = ''); } };
-            const init = () => {  state.db = getDB(); state.settings = getSettings(); document.getElementById('seek-time-input').value = state.settings.seekTime; const proxyInput=document.getElementById('proxy-url-input'); if(proxyInput){proxyInput.value=state.settings.proxyUrl||''; proxyInput.addEventListener('change', e=>{ state.settings.proxyUrl=(e.target.value||'').trim(); saveSettings(); });} document.getElementById('seek-time-input').addEventListener('change', e => { state.settings.seekTime = parseInt(e.target.value) || 10; saveSettings(); document.querySelectorAll('.seek-btn').forEach(btn => { const dir = parseInt(btn.dataset.seek) > 0 ? 1 : -1; btn.dataset.seek = dir * state.settings.seekTime; }); }); const nativeCb = document.getElementById('use-native-player'); nativeCb.checked = !!state.settings.useNativePlayer; nativeCb.addEventListener('change', e => { state.settings.useNativePlayer = e.target.checked; saveSettings(); applyPlayerMode(); }); const proxyCb = document.getElementById('proxy-play'); if(proxyCb){proxyCb.checked = !!state.settings.proxyPlay; proxyCb.addEventListener('change', e => { state.settings.proxyPlay = e.target.checked; saveSettings(); if(video && video.currentSrc && state.currentPlaylist && state.currentPlaylist.length>0) loadAndPlayCut(state.currentPlaylistIndex, video.currentTime); });} document.querySelectorAll('.seek-btn').forEach(btn => { const dir = parseInt(btn.dataset.seek) > 0 ? 1 : -1; btn.dataset.seek = dir * state.settings.seekTime; }); applyPlayerMode(); const lastPos = localStorage.getItem('lastPlaybackPosition'); if (lastPos) createResumePrompt(JSON.parse(lastPos)); initBoboClosetApp(); initDataManagement(); initWeChatGenerator(); initImageSlicer(); showScreen('home-screen'); };
+
+            /* ===== 图片物料 ===== */
+            const igEsc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+            const IG = { albumId:null, platform:null, date:null, lbIndex:-1, level:'albums' };
+            const igAlbums = () => state.db.image_albums || (state.db.image_albums=[]);
+            const igFindAlbum = () => igAlbums().find(a=>a.id===IG.albumId);
+            const igDates = a => Object.keys((a.platforms[IG.platform])||{}).sort().reverse();
+            const igItems = () => { const a=igFindAlbum(); return (a && a.platforms[IG.platform] && a.platforms[IG.platform][IG.date]) || []; };
+            const igCount = a => { let n=0; Object.values(a.platforms||{}).forEach(p=>{Object.values(p).forEach(d=>n+=d.length)}); return n; };
+
+            const igNav = (backFn, title, addLabel, addFn) => {
+                document.getElementById('ig-nav-title').textContent = title;
+                const addBtn = document.getElementById('ig-nav-add');
+                if(addLabel){ addBtn.style.display='inline-block'; addBtn.textContent = addLabel; addBtn.onclick = addFn; }
+                else { addBtn.style.display='none'; }
+                document.getElementById('ig-nav-back').onclick = backFn;
+            };
+
+            const renderImageGallery = () => {
+                IG.level='albums';
+                document.getElementById('ig-title').textContent='图片物料';
+                igNav(()=>showScreen('home-screen'), '图片物料', '＋ 新建行程/作品', ()=>{
+                    const nm=prompt('行程/作品名称：');
+                    if(!nm||!nm.trim())return;
+                    if(igAlbums().some(a=>a.name===nm.trim())){alert('名称已存在');return;}
+                    igAlbums().push({id:Date.now(),name:nm.trim(),platforms:{}});
+                    saveDB(); renderImageGallery();
+                });
+                const list=igAlbums(); const el=document.getElementById('ig-content');
+                el.innerHTML='';
+                if(!list.length){ el.innerHTML='<p class="empty-state">还没有行程/作品，点右上角"＋"开始</p>'; return; }
+                list.forEach(a=>{
+                    const plats=Object.keys(a.platforms||{});
+                    const card=document.createElement('div'); card.className='ig-album-card';
+                    card.innerHTML='<div><h3>'+igEsc(a.name)+'</h3><p class="ig-sub">'+plats.length+'个平台 · '+igCount(a)+'张图</p></div><div class="ig-card-ops"><span class="ig-op-edit" title="改名">✏️</span><span class="ig-op-del" title="删除">🗑</span></div>';
+                    card.onclick=()=>{ IG.albumId=a.id; IG.platform=Object.keys(a.platforms||{})[0]||null; IG.date=null; renderIgPlatforms(); };
+                    card.querySelector('.ig-op-edit').onclick=(e)=>{ e.stopPropagation(); const nm=prompt('新名称：',a.name); if(nm&&nm.trim()){ a.name=nm.trim(); saveDB(); renderImageGallery(); } };
+                    card.querySelector('.ig-op-del').onclick=(e)=>{ e.stopPropagation(); if(confirm('删除整个行程/作品？')){ state.db.image_albums=igAlbums().filter(x=>x.id!==a.id); saveDB(); renderImageGallery(); } };
+                    el.appendChild(card);
+                });
+            };
+
+            const renderIgPlatforms = () => {
+                IG.level='platforms';
+                const a=igFindAlbum(); if(!a){ renderImageGallery(); return; }
+                igNav(renderImageGallery, a.name, '＋ 平台', ()=>{
+                    const nm=prompt('平台名称（如：小红书 / 微博 / 其他）：');
+                    if(!nm||!nm.trim())return;
+                    if(a.platforms[nm.trim()]){alert('平台已存在');return;}
+                    a.platforms[nm.trim()]={}; saveDB(); IG.platform=nm.trim(); IG.date=null; renderIgDates();
+                });
+                const el=document.getElementById('ig-content'); el.innerHTML='';
+                const plats=Object.keys(a.platforms||{});
+                if(!plats.length){ el.innerHTML='<p class="empty-state">还没有平台，点右上角"＋ 平台"添加（小红书 / 微博 / 其他）</p>'; return; }
+                plats.forEach(p=>{
+                    const cnt=Object.values(a.platforms[p]).reduce((s,d)=>s+d.length,0);
+                    const card=document.createElement('div'); card.className='ig-album-card';
+                    card.innerHTML='<div><h3>'+igEsc(p)+'</h3><p class="ig-sub">'+Object.keys(a.platforms[p]).length+'个日期 · '+cnt+'张图</p></div><div class="ig-card-ops"><span class="ig-op-edit" title="改名">✏️</span><span class="ig-op-del" title="删除">🗑</span></div>';
+                    card.onclick=()=>{ IG.platform=p; IG.date=Object.keys(a.platforms[p])[0]||null; renderIgDates(); };
+                    card.querySelector('.ig-op-edit').onclick=(e)=>{ e.stopPropagation(); const nm=prompt('平台新名称：',p); if(nm&&nm.trim()&&nm.trim()!==p){ if(a.platforms[nm.trim()]){alert('平台已存在');return;} a.platforms[nm.trim()]=a.platforms[p]; delete a.platforms[p]; IG.platform=nm.trim(); saveDB(); renderIgPlatforms(); } };
+                    card.querySelector('.ig-op-del').onclick=(e)=>{ e.stopPropagation(); if(confirm('删除平台 '+p+'？')){ delete a.platforms[p]; IG.platform=Object.keys(a.platforms||{})[0]||null; saveDB(); renderIgPlatforms(); } };
+                    el.appendChild(card);
+                });
+            };
+
+            const renderIgDates = () => {
+                IG.level='dates';
+                const a=igFindAlbum(); if(!a||!IG.platform){ renderIgPlatforms(); return; }
+                igNav(renderIgPlatforms, a.name+' · '+IG.platform, '＋ 日期', ()=>{
+                    const d=prompt('日期（如 2026-10-01）：');
+                    if(d&&d.trim()){
+                        if(a.platforms[IG.platform][d.trim()]){alert('该日期已存在');return;}
+                        a.platforms[IG.platform][d.trim()]=[]; saveDB(); IG.date=d.trim(); renderIgGrid();
+                    }
+                });
+                const el=document.getElementById('ig-content'); el.innerHTML='';
+                const dates=igDates(a);
+                if(!dates.length){ el.innerHTML='<p class="empty-state">还没有日期，点右上角"＋ 日期"添加</p>'; return; }
+                dates.forEach(d=>{
+                    const cnt=a.platforms[IG.platform][d].length;
+                    const card=document.createElement('div'); card.className='ig-album-card';
+                    card.innerHTML='<div><h3>'+igEsc(d)+'</h3><p class="ig-sub">'+cnt+'张图</p></div><div class="ig-card-ops"><span class="ig-op-edit" title="改名">✏️</span><span class="ig-op-del" title="删除">🗑</span></div>';
+                    card.onclick=()=>{ IG.date=d; renderIgGrid(); };
+                    card.querySelector('.ig-op-edit').onclick=(e)=>{ e.stopPropagation(); const nm=prompt('日期新名称：',d); if(nm&&nm.trim()&&nm.trim()!==d){ if(a.platforms[IG.platform][nm.trim()]){alert('该日期已存在');return;} a.platforms[IG.platform][nm.trim()]=a.platforms[IG.platform][d]; delete a.platforms[IG.platform][d]; IG.date=nm.trim(); saveDB(); renderIgDates(); } };
+                    card.querySelector('.ig-op-del').onclick=(e)=>{ e.stopPropagation(); if(confirm('删除日期 '+d+'？')){ delete a.platforms[IG.platform][d]; IG.date=null; saveDB(); renderIgDates(); } };
+                    el.appendChild(card);
+                });
+            };
+
+            const renderIgGrid = () => {
+                IG.level='grid';
+                const a=igFindAlbum(); if(!a||!IG.platform||!IG.date){ renderIgDates(); return; }
+                igNav(renderIgDates, a.name+' · '+IG.platform+' · '+IG.date, '＋ 添加图片链接', openIgAddModal);
+                const el=document.getElementById('ig-content'); el.innerHTML='';
+                const items=igItems();
+                if(!items.length){ el.innerHTML='<p class="empty-state">这个日期还没有图片，点右上角"＋ 添加图片链接"</p>'; return; }
+                const grid=document.createElement('div'); grid.className='ig-grid';
+                items.forEach((it,i)=>{
+                    const div=document.createElement('div'); div.className='ig-item'; div.dataset.i=i;
+                    div.innerHTML='<img loading="lazy" src="'+igEsc(it.url)+'" alt=""><div class="ig-item-text">'+igEsc(it.text||'')+'</div><div class="ig-item-ops"><span class="ig-op-edit">✏️</span><span class="ig-op-del">🗑</span></div>';
+                    div.querySelector('img').onclick=()=>{ IG.lbIndex=i; renderLightbox(); };
+                    div.querySelector('.ig-op-edit').onclick=()=>{ IG.lbIndex=i; renderLightbox(); const it2=igItems()[i]; document.getElementById('ig-edit-url').value=it2.url; document.getElementById('ig-edit-text').value=it2.text||''; openModal('ig-edit-modal'); };
+                    div.querySelector('.ig-op-del').onclick=()=>{ if(confirm('删除这张图片？')){ igItems().splice(i,1); saveDB(); renderIgGrid(); } };
+                    grid.appendChild(div);
+                });
+                el.appendChild(grid);
+            };
+
+            const openIgAddModal = () => {
+                document.getElementById('ig-add-title').textContent='添加图片到 '+IG.platform+' / '+IG.date;
+                document.getElementById('ig-add-urls').value='';
+                document.getElementById('ig-add-text').value='';
+                openModal('ig-add-modal');
+            };
+
+            const renderLightbox = () => {
+                const items=igItems(); const it=items[IG.lbIndex];
+                if(!it)return;
+                document.getElementById('ig-lightbox-img').src=it.url;
+                document.getElementById('ig-lightbox-text').textContent=it.text||'';
+                document.getElementById('ig-lightbox').style.display='flex';
+            };
+
+            const initImageGallery = () => {
+                document.getElementById('ig-lb-close').onclick=()=>{ document.getElementById('ig-lightbox').style.display='none'; };
+                document.getElementById('ig-lb-prev').onclick=()=>{ IG.lbIndex--; if(IG.lbIndex<0)IG.lbIndex=igItems().length-1; renderLightbox(); };
+                document.getElementById('ig-lb-next').onclick=()=>{ IG.lbIndex++; if(IG.lbIndex>=igItems().length)IG.lbIndex=0; renderLightbox(); };
+                document.getElementById('ig-lb-edit').onclick=()=>{
+                    const it=igItems()[IG.lbIndex]; if(!it)return;
+                    document.getElementById('ig-edit-url').value=it.url; document.getElementById('ig-edit-text').value=it.text||'';
+                    openModal('ig-edit-modal');
+                };
+                document.getElementById('ig-lb-del').onclick=()=>{
+                    if(confirm('删除这张图片？')){
+                        igItems().splice(IG.lbIndex,1); saveDB();
+                        if(igItems().length===0){ document.getElementById('ig-lightbox').style.display='none'; }
+                        else{ if(IG.lbIndex>=igItems().length)IG.lbIndex=0; renderLightbox(); }
+                        renderIgGrid();
+                    }
+                };
+                document.getElementById('ig-edit-save').onclick=()=>{
+                    const it=igItems()[IG.lbIndex]; if(!it){ closeModal('ig-edit-modal'); return; }
+                    it.url=document.getElementById('ig-edit-url').value.trim(); it.text=document.getElementById('ig-edit-text').value;
+                    saveDB(); closeModal('ig-edit-modal'); renderIgGrid();
+                };
+                document.getElementById('ig-add-save').onclick=()=>{
+                    const a=igFindAlbum(); const urls=document.getElementById('ig-add-urls').value.split('\n').map(s=>s.trim()).filter(Boolean);
+                    const txt=document.getElementById('ig-add-text').value;
+                    if(!urls.length){alert('请至少输入一个链接');return;}
+                    const arr=a.platforms[IG.platform][IG.date]||(a.platforms[IG.platform][IG.date]=[]);
+                    urls.forEach(u=>arr.push({id:Date.now()+Math.random(),url:u,text:txt}));
+                    saveDB(); closeModal('ig-add-modal'); renderIgGrid();
+                };
+            };
+            const init = () => {  state.db = getDB(); state.settings = getSettings(); fetch('data.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ if(!r.ok) throw new Error('no cloud'); return r.json(); }).then(function(d){ if(d && d.tv_series && d.movies && d.variety){ state.db = d; if(!state.db.image_albums) state.db.image_albums = []; saveDB(); console.log('已加载云端数据 data.json'); } }).catch(function(){}); document.getElementById('seek-time-input').value = state.settings.seekTime; const proxyInput=document.getElementById('proxy-url-input'); if(proxyInput){proxyInput.value=state.settings.proxyUrl||''; proxyInput.addEventListener('change', e=>{ state.settings.proxyUrl=(e.target.value||'').trim(); saveSettings(); });} document.getElementById('seek-time-input').addEventListener('change', e => { state.settings.seekTime = parseInt(e.target.value) || 10; saveSettings(); document.querySelectorAll('.seek-btn').forEach(btn => { const dir = parseInt(btn.dataset.seek) > 0 ? 1 : -1; btn.dataset.seek = dir * state.settings.seekTime; }); }); const nativeCb = document.getElementById('use-native-player'); nativeCb.checked = !!state.settings.useNativePlayer; nativeCb.addEventListener('change', e => { state.settings.useNativePlayer = e.target.checked; saveSettings(); applyPlayerMode(); }); const proxyCb = document.getElementById('proxy-play'); if(proxyCb){proxyCb.checked = !!state.settings.proxyPlay; proxyCb.addEventListener('change', e => { state.settings.proxyPlay = e.target.checked; saveSettings(); if(video && video.currentSrc && state.currentPlaylist && state.currentPlaylist.length>0) loadAndPlayCut(state.currentPlaylistIndex, video.currentTime); });} document.querySelectorAll('.seek-btn').forEach(btn => { const dir = parseInt(btn.dataset.seek) > 0 ? 1 : -1; btn.dataset.seek = dir * state.settings.seekTime; }); applyPlayerMode(); const lastPos = localStorage.getItem('lastPlaybackPosition'); if (lastPos) createResumePrompt(JSON.parse(lastPos)); initBoboClosetApp(); initDataManagement(); initWeChatGenerator(); initImageSlicer(); initImageGallery(); showScreen('home-screen'); };
             init();
             function initBoboClosetApp() { const b=document.getElementById("bobo-image-input"),c=document.getElementById("closet-modal"),x=document.getElementById("close-closet-btn"),s=document.getElementById("continue-select-btn"),a=document.getElementById("add-by-link-btn"),u=document.getElementById("url-prompt-modal"),f=document.getElementById("url-prompt-form"),n=document.getElementById("url-prompt-cancel-btn"),i=document.getElementById("image-url-input");x.addEventListener("click",()=>c.style.display="none");s.addEventListener("click",()=>b.click());a.addEventListener("click",()=>{i.value="";openModal("url-prompt-modal")});n.addEventListener("click",()=>closeModal("url-prompt-modal"));f.addEventListener("submit",e=>{e.preventDefault();const url=i.value.trim();if(url){createFramedPreviewInCloset(url);closeModal("url-prompt-modal")}});b.addEventListener("change",e=>{if(e.target.files&&e.target.files.length>0){for(const file of e.target.files){const r=new FileReader;r.onload=e=>createFramedPreviewInCloset(e.target.result);r.readAsDataURL(file)}}e.target.value=null})}
             function initCloset(p, k) {  const c = document.getElementById('closet-preview-area'); c.innerHTML = '';  if (p === 1661040000000 && k.startsWith('20220821')) { createFramedPreviewInCloset('https://i.postimg.cc/KjQF1RdY/439D0DCF15EA13804294F8EF9ED17D65.jpg'); } else if (p === 1661040000000 && k.startsWith('20220828')) { createFramedPreviewInCloset('https://i.postimg.cc/Y0tM21yq/A38B7D884ADE632EA7A1741D2AD467BF.jpg'); } }
